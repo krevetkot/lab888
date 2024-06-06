@@ -1,15 +1,25 @@
 package labs.secondSemester.client.controllers;
 
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 import labs.secondSemester.client.Client;
 import labs.secondSemester.commons.commands.Command;
 import labs.secondSemester.commons.commands.Login;
 import labs.secondSemester.commons.commands.SignUp;
+import labs.secondSemester.commons.managers.CollectionManager;
 import labs.secondSemester.commons.network.ClientIdentification;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import lombok.Setter;
+
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Path;
 
 @Setter
 public class LoginSignUpController {
@@ -22,6 +32,10 @@ public class LoginSignUpController {
     private Button registerButton;
     @FXML
     private Button loginButton;
+
+    private Stage stage;
+    private Scene scene;
+    private Parent root;
 
     public LoginSignUpController(){
         loginField = new TextField();
@@ -55,10 +69,19 @@ public class LoginSignUpController {
 
         client.send(loginCommand);
         if (client.handleLoginResponse()){
+            //тут еще хорошо бы выводить всякие дайлоги
             System.out.println("УРА НЕУЖЕЛИ МЫ СМОГЛИ ВОЙТИ В АККАУНТ");
             client.setClientID(new ClientIdentification(login, hashedPassword));
             client.getClientID().setAuthorized(true);
-        };
+            try {
+                switchToMainScene(e);
+            } catch (IOException ex) {
+                System.out.println(ex.getMessage());
+            }
+        }
+        else {
+            System.out.println("Вы знатный лох, попробуйте еще");
+        }
 
     }
 
@@ -72,11 +95,32 @@ public class LoginSignUpController {
 
         client.send(signUpCommand);
         if (client.handleLoginResponse()){
+            //тут еще хорошо бы выводить всякие дайлоги
             System.out.println("УРА НЕУЖЕЛИ МЫ СМОГЛИ ВОЙТИ В АККАУНТ");
             client.setClientID(new ClientIdentification(login, hashedPassword));
             client.getClientID().setAuthorized(true);
-        };
+            try {
+                switchToMainScene(e);
+            } catch (IOException ex) {
+                System.out.println(ex.getMessage());
+            }
+        }
+        else {
+            System.out.println("Вы знатный лох, попробуйте еще");
+        }
     }
 
+    public void switchToMainScene(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("main-view.fxml"));
+        root = loader.load();
+
+        MainController mainController = loader.getController();
+        mainController.setClient(client);
+
+        stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+        scene = new Scene(root);
+        stage.setScene(scene);
+        stage.show();
+    }
 
 }

@@ -6,6 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import labs.secondSemester.client.controllers.MainController;
 //import org.apache.logging.log4j.LogManager;
 //import org.apache.logging.log4j.Logger;
 
@@ -14,6 +15,7 @@ import java.io.IOException;
 public class App extends Application {
     private Parent authRoot;
     private LoginSignUpController loginSignUpController;
+    private MainController mainController;
     private static Client client;
     private Stage stage;
 
@@ -42,6 +44,17 @@ public class App extends Application {
         stage.setScene(scene);
         loginSignUpController = authLoader.getController();
         loginSignUpController.setClient(client);
+        loginSignUpController.setStage(stage);
+        stage.show();
+    }
+
+    public void mainStage(){
+        var mainLoader = new FXMLLoader(getClass().getResource("main-view.fxml"));
+        authRoot = loadFxml(mainLoader);
+        Scene scene = new Scene(authRoot);
+        stage.setScene(scene);
+        mainController = mainLoader.getController();
+        mainController.setClient(client);
         stage.show();
     }
 
