@@ -55,7 +55,7 @@ public class LoginSignUpController {
 
         client.send(loginCommand);
         if (client.handleLoginResponse()){
-            //go to main stage
+            System.out.println("УРА НЕУЖЕЛИ МЫ СМОГЛИ ВОЙТИ В АККАУНТ");
             client.setClientID(new ClientIdentification(login, hashedPassword));
             client.getClientID().setAuthorized(true);
         };
@@ -72,7 +72,7 @@ public class LoginSignUpController {
 
         client.send(signUpCommand);
         if (client.handleLoginResponse()){
-            //go to main stage
+            System.out.println("УРА НЕУЖЕЛИ МЫ СМОГЛИ ВОЙТИ В АККАУНТ");
             client.setClientID(new ClientIdentification(login, hashedPassword));
             client.getClientID().setAuthorized(true);
         };
