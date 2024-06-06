@@ -3,13 +3,13 @@
 // (powered by FernFlower decompiler)
 //
 
-package com.labs.secondsemester.client;
+package labs.secondSemester.client;
 
-import com.labs.secondsemester.common.commands.Command;
-import com.labs.secondsemester.common.exceptions.IllegalValueException;
-import com.labs.secondsemester.common.managers.CommandManager;
-import com.labs.secondsemester.common.managers.Validator;
-import com.labs.secondsemester.common.network.ClientIdentification;
+import labs.secondSemester.commons.commands.Command;
+import labs.secondSemester.commons.exceptions.IllegalValueException;
+import labs.secondSemester.commons.managers.CommandManager;
+import labs.secondSemester.commons.managers.Validator;
+import labs.secondSemester.commons.network.ClientIdentification;
 import lombok.Setter;
 
 import java.util.Arrays;

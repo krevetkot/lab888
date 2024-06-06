@@ -1,16 +1,16 @@
-package com.labs.secondsemester.client;
+package labs.secondSemester.client;
 
-import com.labs.secondsemester.common.commands.Command;
-import com.labs.secondsemester.common.commands.ExecuteFile;
-import com.labs.secondsemester.common.commands.Exit;
-import com.labs.secondsemester.common.exceptions.FailedBuildingException;
-import com.labs.secondsemester.common.exceptions.IllegalValueException;
-import com.labs.secondsemester.common.managers.Console;
-import com.labs.secondsemester.common.managers.ScriptManager;
-import com.labs.secondsemester.common.network.ClientIdentification;
-import com.labs.secondsemester.common.network.Response;
-import com.labs.secondsemester.common.objects.Dragon;
-import com.labs.secondsemester.common.objects.forms.DragonForm;
+import labs.secondSemester.commons.commands.Command;
+import labs.secondSemester.commons.commands.ExecuteFile;
+import labs.secondSemester.commons.commands.Exit;
+import labs.secondSemester.commons.exceptions.FailedBuildingException;
+import labs.secondSemester.commons.exceptions.IllegalValueException;
+import labs.secondSemester.commons.managers.Console;
+import labs.secondSemester.commons.managers.ScriptManager;
+import labs.secondSemester.commons.network.ClientIdentification;
+import labs.secondSemester.commons.network.Response;
+import labs.secondSemester.commons.objects.Dragon;
+import labs.secondSemester.commons.objects.forms.DragonForm;
 
 import java.io.BufferedReader;
 import java.io.File;

@@ -1,13 +1,16 @@
-package com.labs.secondsemester.client;
+package labs.secondSemester.client;
 
-import com.labs.secondsemester.common.commands.*;
-import com.labs.secondsemester.common.exceptions.AccessDeniedException;
-import com.labs.secondsemester.common.exceptions.FailedBuildingException;
-import com.labs.secondsemester.common.exceptions.IllegalValueException;
-import com.labs.secondsemester.common.managers.Console;
-import com.labs.secondsemester.common.network.*;
-import com.labs.secondsemester.common.objects.Dragon;
-import com.labs.secondsemester.common.objects.forms.DragonForm;
+import labs.secondSemester.commons.commands.*;
+import labs.secondSemester.commons.exceptions.AccessDeniedException;
+import labs.secondSemester.commons.exceptions.FailedBuildingException;
+import labs.secondSemester.commons.exceptions.IllegalValueException;
+import labs.secondSemester.commons.managers.Console;
+import labs.secondSemester.commons.network.*;
+import labs.secondSemester.commons.objects.Dragon;
+import labs.secondSemester.commons.objects.forms.DragonForm;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -37,19 +40,19 @@ public class Client {
     private final FileManager fileManager;
     private final String ip;
     private final int BUFFER_LENGTH = 10000;
+    @Setter
+    @Getter
     private ClientIdentification clientID;
 
-    {
-        selector = Selector.open();
-        datagramChannel = DatagramChannel.open();
-        serializer = new Serializer();
-        selector = Selector.open();
-    }
 
     public Client(String ip) throws IOException {
         fileManager = new FileManager(this);
         this.ip = ip;
         clientID = new ClientIdentification("", "");
+        selector = Selector.open();
+        datagramChannel = DatagramChannel.open();
+        serializer = new Serializer();
+        selector = Selector.open();
     }
 
 
@@ -65,8 +68,6 @@ public class Client {
 
         System.out.println("Приветствуем Вас в приложении по управлению коллекцией! Введите 'help' для вывода доступных команд.");
         System.out.println("Необходимо зарегистрироваться или выполнить вход в аккаунт. Это можно сделать командами sign_up и login.");
-//        clientID = new ClientIdentification("Kseniya123", encryptStringSHA512("11111"));
-//        clientID.setAuthorized(true);
 
         while (true) {
             try {
@@ -140,6 +141,18 @@ public class Client {
                 System.out.println("Проблемы с ответом от сервера.");
             }
         }
+    }
+
+    public boolean handleLoginResponse(){
+        ByteBuffer buffer = ByteBuffer.allocate(BUFFER_LENGTH);
+        Response response = receive(buffer);
+        for (String element : response.getResponse()) {
+            if (element.equals("Выполнен вход в аккаунт.")){
+                clientID.setAuthorized(true);
+                return true;
+            }
+        }
+        return false;
     }
 
     public ClientIdentification askLoginPassword(Scanner scanner){
@@ -219,7 +232,7 @@ public class Client {
             SocketAddress address = null;
             int time = 1;
             int tries = 1;
-            int period = 50000000;
+            int period = 50000;
             while (!serverAddress.equals(address)) {
                 if (time % period == 0) {
                     connectServer(tries);
