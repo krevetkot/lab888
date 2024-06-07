@@ -2,18 +2,29 @@ package labs.secondSemester.client.controllers;
 
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.stage.Stage;
 import labs.secondSemester.client.Client;
+import labs.secondSemester.client.CommandFactory;
+import labs.secondSemester.commons.commands.Command;
+import labs.secondSemester.commons.exceptions.FailedBuildingException;
+import labs.secondSemester.commons.exceptions.IllegalValueException;
 import labs.secondSemester.commons.managers.CollectionManager;
+import labs.secondSemester.commons.managers.Console;
 import labs.secondSemester.commons.objects.Color;
 import labs.secondSemester.commons.objects.Country;
 import labs.secondSemester.commons.objects.Dragon;
 import labs.secondSemester.commons.objects.DragonType;
+import labs.secondSemester.commons.objects.forms.DragonForm;
 import lombok.Setter;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
@@ -23,6 +34,9 @@ public class MainController {
 
     private ArrayList<Dragon> collectionOfDragons;
     private Client client;
+    private CommandFactory commandFactory;
+    @FXML
+    private Label usernameLabel;
     @FXML
     private TableColumn<Dragon, String> ownerColumn1;
     @FXML
@@ -40,7 +54,6 @@ public class MainController {
     @FXML
     private TableColumn<Dragon, String> typeColumn1;
 
-
     @FXML
     private TableColumn<Dragon, String> nameColumn2;
     @FXML
@@ -54,7 +67,6 @@ public class MainController {
     @FXML
     private TableColumn<Dragon, Long> killed_dragonsColumn2;
 
-
     @FXML
     private TableColumn<Dragon, Integer> idColumn3;
     @FXML
@@ -62,22 +74,46 @@ public class MainController {
     @FXML
     private TableColumn<Dragon, Float> yColumn3;
 
-
-
     @FXML
     private Tab visualTab;
     @FXML
     private Tab dragonTab;
     @FXML
-    private TableView<Dragon> tableTable;
+    private TableView<Dragon> dragonsTable;
     @FXML
     private Tab coordsTab;
     @FXML
     private Tab personTab;
 
     @FXML
+    private Button addButton;
+    @FXML
+    private Button clearButton;
+    @FXML
+    private Button infoButton;
+    @FXML
+    private Button helpButton;
+    @FXML
+    private Button filterLessThanKillerButton;
+    @FXML
+    private Button maxByKillerButton;
+    @FXML
+    private Button printFieldDescendingAgeButton;
+    @FXML
+    private Button removeByID;
+    @FXML
+    private Button removeFirstButton;
+    @FXML
+    private Button reorderButton;
+    @FXML
+    private Button executeFileButton;
+
+    private Stage stage;
+    private Scene scene;
+    private Parent root;
+
+    @FXML
     public void initialize(){
-        tableTable.setItems(FXCollections.observableArrayList(CollectionManager.getCollection()));
 
         ownerColumn1.setCellValueFactory(dragon -> new SimpleStringProperty(dragon.getValue().getOwner()));
         idColumn1.setCellValueFactory(dragon -> new SimpleIntegerProperty(dragon.getValue().getId()).asObject());
@@ -99,6 +135,55 @@ public class MainController {
         xColumn3.setCellValueFactory(dragon -> new SimpleLongProperty(dragon.getValue().getCoordinates().getX()).asObject());
         yColumn3.setCellValueFactory(dragon -> new SimpleFloatProperty(dragon.getValue().getCoordinates().getY()).asObject());
 
+        dragonsTable.setItems(FXCollections.observableArrayList(CollectionManager.getCollection()));
+//        initializeUser();
+
+    }
+
+    public void initializeUser(){
+        usernameLabel.setText("Username: " + client.getClientID().getLogin());
+    }
+
+    @FXML
+    private void add(ActionEvent e){
+        try {
+            switchToEditing(e);
+            //кароче чекайте
+            //мы положим все принятые данные в массив строк
+            //пошлем эту красоту в драгон форм.билд
+            //получим отвалидированного дракона
+            //отправим на сервак, он все сделает. усе
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+            //Alert с ошибкой
+        }
+
+
+        try {
+            Command command = commandFactory.buildCommand("add");
+            DragonForm newDragon = new DragonForm();
+            try {
+
+            } catch (FailedBuildingException | IllegalValueException e) {
+                Console.print(e.getMessage(), false);
+            }
+        } catch (IllegalValueException ex) {
+            throw new RuntimeException(ex);
+            //Alert с ошибкой
+        }
+    }
+
+    private void switchToEditing(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("edit-view.fxml"));
+        root = loader.load();
+
+        MainController mainController = loader.getController();
+        mainController.setClient(client);
+
+        stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+        scene = new Scene(root);
+        stage.setScene(scene);
+        stage.show();
     }
 
 

@@ -45,6 +45,7 @@ public class App extends Application {
         loginSignUpController = authLoader.getController();
         loginSignUpController.setClient(client);
         loginSignUpController.setStage(stage);
+        stage.setTitle("Lab8");
         stage.show();
     }
 

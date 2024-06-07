@@ -18,8 +18,6 @@ import javafx.scene.control.TextField;
 import lombok.Setter;
 
 import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Path;
 
 @Setter
 public class LoginSignUpController {
@@ -73,6 +71,9 @@ public class LoginSignUpController {
             System.out.println("УРА НЕУЖЕЛИ МЫ СМОГЛИ ВОЙТИ В АККАУНТ");
             client.setClientID(new ClientIdentification(login, hashedPassword));
             client.getClientID().setAuthorized(true);
+
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+            alert.showAlert("Confirmation", null, "Вы успешно вошли в аккаунт.");
             try {
                 switchToMainScene(e);
             } catch (IOException ex) {
@@ -80,7 +81,8 @@ public class LoginSignUpController {
             }
         }
         else {
-            System.out.println("Вы знатный лох, попробуйте еще");
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            alert.showAlert("Error", null, "Вход в аккаунт не выполнен.");
         }
 
     }
@@ -99,6 +101,9 @@ public class LoginSignUpController {
             System.out.println("УРА НЕУЖЕЛИ МЫ СМОГЛИ ВОЙТИ В АККАУНТ");
             client.setClientID(new ClientIdentification(login, hashedPassword));
             client.getClientID().setAuthorized(true);
+
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+            alert.showAlert("Confirmation", null, "Вы успешно вошли в аккаунт.");
             try {
                 switchToMainScene(e);
             } catch (IOException ex) {
@@ -106,7 +111,8 @@ public class LoginSignUpController {
             }
         }
         else {
-            System.out.println("Вы знатный лох, попробуйте еще");
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            alert.showAlert("Error", null, "Вход в аккаунт не выполнен.");
         }
     }
 
@@ -116,6 +122,7 @@ public class LoginSignUpController {
 
         MainController mainController = loader.getController();
         mainController.setClient(client);
+        mainController.setStage(stage);
 
         stage = (Stage)((Node)event.getSource()).getScene().getWindow();
         scene = new Scene(root);
