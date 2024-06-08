@@ -6,6 +6,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import labs.secondSemester.client.Client;
+import labs.secondSemester.client.CommandFactory;
 import labs.secondSemester.commons.commands.Command;
 import labs.secondSemester.commons.commands.Login;
 import labs.secondSemester.commons.commands.SignUp;
@@ -72,7 +73,7 @@ public class LoginSignUpController {
             client.setClientID(new ClientIdentification(login, hashedPassword));
             client.getClientID().setAuthorized(true);
 
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
             alert.showAlert("Confirmation", null, "Вы успешно вошли в аккаунт.");
             try {
                 switchToMainScene(e);
@@ -102,7 +103,7 @@ public class LoginSignUpController {
             client.setClientID(new ClientIdentification(login, hashedPassword));
             client.getClientID().setAuthorized(true);
 
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
             alert.showAlert("Confirmation", null, "Вы успешно вошли в аккаунт.");
             try {
                 switchToMainScene(e);
@@ -123,6 +124,9 @@ public class LoginSignUpController {
         MainController mainController = loader.getController();
         mainController.setClient(client);
         mainController.setStage(stage);
+        mainController.setCommandFactory(new CommandFactory(client.getClientID()));
+
+//        mainController.setCollectionOfDragons(client.getCollectionFromServer());
 
         stage = (Stage)((Node)event.getSource()).getScene().getWindow();
         scene = new Scene(root);

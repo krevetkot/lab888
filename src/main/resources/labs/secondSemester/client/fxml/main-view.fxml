@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="531.0" prefWidth="872.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="labs.secondSemester.client.controllers.MainController">
+   <children>
+      <HBox layoutX="22.0" layoutY="472.0" prefHeight="30.0" prefWidth="849.0">
+         <children>
+            <Button fx:id="addButton" mnemonicParsing="false" onAction="#add" text="Add" />
+            <Button fx:id="clearButton" mnemonicParsing="false" text="Clear" />
+            <Button fx:id="infoButton" mnemonicParsing="false" onAction="#info" text="Info" />
+            <Button fx:id="helpButton" mnemonicParsing="false" onAction="#help" text="Help" />
+            <Button fx:id="filterLessThanKillerButton" mnemonicParsing="false" text="FilterLessThanKiller" />
+            <Button fx:id="maxByKillerButton" mnemonicParsing="false" text="MaxByKiller" />
+            <Button fx:id="printFieldDescendingAgeButton" mnemonicParsing="false" onAction="#printFieldDescendingAge" text="PrintFieldDescendingAge" />
+            <Button fx:id="removeByID" mnemonicParsing="false" text="RemoveByID" />
+            <Button fx:id="removeFirstButton" mnemonicParsing="false" text="RemoveFirst" />
+            <Button fx:id="reorderButton" mnemonicParsing="false" text="Reorder" />
+            <Button fx:id="executeFileButton" mnemonicParsing="false" text="ExecuteFile" />
+         </children>
+      </HBox>
+      <TabPane layoutX="14.0" layoutY="14.0" prefHeight="458.0" prefWidth="849.0" tabClosingPolicy="UNAVAILABLE">
+        <tabs>
+            <Tab fx:id="dragonTab" text="Dragon">
+               <content>
+                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="374.0" prefWidth="849.0">
+                     <children>
+                        <TableView fx:id="dragonsTable" layoutX="14.0" layoutY="14.0" prefHeight="407.0" prefWidth="829.0">
+                           <columns>
+                              <TableColumn fx:id="idColumn1" prefWidth="53.24368667602539" text="id" />
+                               <TableColumn fx:id="ownerColumn1" prefWidth="53.24368667602539" text="owner" />
+                              <TableColumn fx:id="nameColumn1" prefWidth="64.53780364990234" text="name" />
+                              <TableColumn fx:id="coordsColumn1" prefWidth="99.22689819335938" text="coordinates_id" />
+                              <TableColumn fx:id="dateColumn1" prefWidth="94.38653564453125" text="creation date" />
+                              <TableColumn fx:id="ageColumn1" prefWidth="48.4033203125" text="age" />
+                              <TableColumn fx:id="weightColumn1" prefWidth="54.857177734375" text="weight" />
+                              <TableColumn fx:id="speakingColumn1" prefWidth="84.705810546875" text="speaking" />
+                              <TableColumn fx:id="typeColumn1" prefWidth="75.8319091796875" text="type" />
+                              <TableColumn fx:id="killer_nameColumn1" prefWidth="87.93280029296875" text="killer_id" />
+                           </columns>
+                        </TableView>
+                     </children>
+                  </AnchorPane>
+               </content>
+            </Tab>
+          <Tab fx:id="coordsTab" text="Coordinates">
+            <content>
+              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="374.0" prefWidth="849.0">
+                     <children>
+                        <TableView layoutX="6.0" layoutY="6.0" prefHeight="424.0" prefWidth="1029.0">
+                          <columns>
+                              <TableColumn fx:id="idColumn3" prefWidth="44.369781494140625" text="id" />
+                              <TableColumn prefWidth="61.31085205078125" text="x" fx:id="xColumn3" />
+                              <TableColumn fx:id="yColumn3" prefWidth="61.31085205078125" text="y" />
+                          </columns>
+                        </TableView>
+                     </children>
+                  </AnchorPane>
+            </content>
+          </Tab>
+            <Tab fx:id="personTab" text="Person">
+               <content>
+                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="374.0" prefWidth="849.0">
+                     <children>
+                        <TableView layoutX="6.0" layoutY="6.0" prefHeight="424.0" prefWidth="1029.0">
+                           <columns>
+                              <TableColumn fx:id="nameColumn2" prefWidth="64.53780364990234" text="name" />
+                              <TableColumn fx:id="passportColumn2" prefWidth="68.57144165039062" text="passport" />
+                              <TableColumn fx:id="eye_colorColumn2" prefWidth="87.12603759765625" text="eye_color" />
+                              <TableColumn fx:id="hair_colorColumn2" prefWidth="84.7059326171875" text="hair_color" />
+                              <TableColumn fx:id="nationalityColumn2" prefWidth="91.96636962890625" text="nationality" />
+                              <TableColumn fx:id="killed_dragonsColumn2" prefWidth="110.52105712890625" text="killed_dragons" />
+                           </columns>
+                        </TableView>
+                     </children>
+                  </AnchorPane>
+               </content>
+            </Tab>
+          <Tab text="Visual">
+            <content>
+              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+            </content>
+          </Tab>
+        </tabs>
+      </TabPane>
+      <Label fx:id="usernameLabel" layoutX="22.0" layoutY="503.0" prefHeight="18.0" prefWidth="162.0" text="User: " />
+   </children>
+</AnchorPane>

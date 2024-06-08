@@ -6,7 +6,7 @@ import labs.secondSemester.commons.exceptions.FailedBuildingException;
 import labs.secondSemester.commons.exceptions.IllegalValueException;
 import labs.secondSemester.commons.managers.Console;
 import labs.secondSemester.commons.network.*;
-import labs.secondSemester.commons.objects.Dragon;
+import labs.secondSemester.commons.objects.*;
 import labs.secondSemester.commons.objects.forms.DragonForm;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,10 +24,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -155,6 +153,11 @@ public class Client {
         return false;
     }
 
+    public Response handleResponse(){
+        ByteBuffer buffer = ByteBuffer.allocate(BUFFER_LENGTH);
+        return receive(buffer);
+    }
+
     public ClientIdentification askLoginPassword(Scanner scanner){
         System.out.print("Введите имя пользователя: ");
         String login;
@@ -200,6 +203,48 @@ public class Client {
             throw new RuntimeException(e);
         }
     }
+
+    public ArrayList<Dragon> getCollectionFromServer(){
+        CommandFactory commandFactory = new CommandFactory(clientID);
+        try {
+            send(commandFactory.buildCommand("technical_show"));
+        } catch (IllegalValueException e) {
+            System.out.println(e.getMessage());
+        }
+        Response response = handleResponse();
+        return parseTechShow(response.getResponse());
+    }
+
+    private ArrayList<Dragon> parseTechShow(ArrayList<String> dragons){
+        ArrayList<Dragon> dragons1 = new ArrayList<>();
+
+        for (String elem: dragons){
+            String[] temp = elem.trim().split(",");
+            if (temp[10].equals("null")){
+                Dragon dragon = new Dragon(temp[2], new Coordinates(java.lang.Long.parseLong(temp[3]), java.lang.Float.parseFloat(temp[4]))
+                        , java.lang.Long.parseLong(temp[6]), java.lang.Long.valueOf(temp[7]), Boolean.parseBoolean(temp[8]),
+                        labs.secondSemester.commons.objects.DragonType.valueOf(temp[9]),
+                        null, temp[0]);
+                dragon.setId(Integer.parseInt(temp[1]));
+                dragons1.add(dragon);
+            }
+            else {
+                Person person = new Person(temp[10], temp[11], labs.secondSemester.commons.objects.Color.valueOf(temp[12]),
+                        labs.secondSemester.commons.objects.Color.valueOf(temp[13]),
+                        labs.secondSemester.commons.objects.Country.valueOf(temp[14]),
+                        java.lang.Long.parseLong(temp[15]));
+                Dragon dragon = new Dragon(temp[2], new Coordinates(java.lang.Long.parseLong(temp[3]), java.lang.Float.parseFloat(temp[4]))
+                        , java.lang.Long.parseLong(temp[6]), java.lang.Long.valueOf(temp[7]), Boolean.parseBoolean(temp[8]),
+                        labs.secondSemester.commons.objects.DragonType.valueOf(temp[9]),
+                        person, temp[0]);
+                dragon.setId(Integer.parseInt(temp[1]));
+                dragons1.add(dragon);
+            }
+        }
+        return dragons1;
+
+    }
+
 
 
     public void send(Command command) {

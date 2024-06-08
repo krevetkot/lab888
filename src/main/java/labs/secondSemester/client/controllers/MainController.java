@@ -1,10 +1,13 @@
 package labs.secondSemester.client.controllers;
 
+import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -12,6 +15,7 @@ import javafx.scene.control.*;
 import javafx.stage.Stage;
 import labs.secondSemester.client.Client;
 import labs.secondSemester.client.CommandFactory;
+import labs.secondSemester.commons.commands.Add;
 import labs.secondSemester.commons.commands.Command;
 import labs.secondSemester.commons.exceptions.FailedBuildingException;
 import labs.secondSemester.commons.exceptions.IllegalValueException;
@@ -23,56 +27,58 @@ import labs.secondSemester.commons.objects.Dragon;
 import labs.secondSemester.commons.objects.DragonType;
 import labs.secondSemester.commons.objects.forms.DragonForm;
 import lombok.Setter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.net.URL;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.ResourceBundle;
 
 @Setter
-public class MainController {
-    //1 - dragon, 2 - person, 3 - coords
+public class MainController implements Initializable {
+    private static final Logger logger = LogManager.getLogger(MainController.class);
 
     private ArrayList<Dragon> collectionOfDragons;
     private Client client;
     private CommandFactory commandFactory;
+    private boolean isEditing;
     @FXML
     private Label usernameLabel;
     @FXML
-    private TableColumn<Dragon, String> ownerColumn1;
+    private TableColumn<Dragon, String> ownerColumn;
     @FXML
-    private TableColumn<Dragon, Integer> idColumn1;
+    private TableColumn<Dragon, Integer> idColumn;
     @FXML
-    private TableColumn<Dragon, String> nameColumn1;
+    private TableColumn<Dragon, String> nameColumn;
     @FXML
-    private TableColumn<Dragon, String> dateColumn1;
+    private TableColumn<Dragon, Long> xColumn;
     @FXML
-    private TableColumn<Dragon, Long> ageColumn1;
+    private TableColumn<Dragon, Float> yColumn;
     @FXML
-    private TableColumn<Dragon, Long> weightColumn1;
+    private TableColumn<Dragon, String> dateColumn;
     @FXML
-    private TableColumn<Dragon, Boolean> speakingColumn1;
+    private TableColumn<Dragon, Long> ageColumn;
     @FXML
-    private TableColumn<Dragon, String> typeColumn1;
+    private TableColumn<Dragon, Long> weightColumn;
+    @FXML
+    private TableColumn<Dragon, Boolean> speakingColumn;
+    @FXML
+    private TableColumn<Dragon, String> typeColumn;
 
     @FXML
-    private TableColumn<Dragon, String> nameColumn2;
+    private TableColumn<Dragon, String> kNameColumn;
     @FXML
-    private TableColumn<Dragon, String> passportColumn2;
+    private TableColumn<Dragon, String> kPassportColumn;
     @FXML
-    private TableColumn<Dragon, String> eye_colorColumn2;
+    private TableColumn<Dragon, String> kEyeColorColumn;
     @FXML
-    private TableColumn<Dragon, String> hair_colorColumn2;
+    private TableColumn<Dragon, String> kHairColorColumn;
     @FXML
-    private TableColumn<Dragon, String> nationalityColumn2;
+    private TableColumn<Dragon, String> kNationalityColumn;
     @FXML
-    private TableColumn<Dragon, Long> killed_dragonsColumn2;
-
-    @FXML
-    private TableColumn<Dragon, Integer> idColumn3;
-    @FXML
-    private TableColumn<Dragon, Long> xColumn3;
-    @FXML
-    private TableColumn<Dragon, Float> yColumn3;
+    private TableColumn<Dragon, Long> kKilledDragonsColumn;
 
     @FXML
     private Tab visualTab;
@@ -80,10 +86,6 @@ public class MainController {
     private Tab dragonTab;
     @FXML
     private TableView<Dragon> dragonsTable;
-    @FXML
-    private Tab coordsTab;
-    @FXML
-    private Tab personTab;
 
     @FXML
     private Button addButton;
@@ -112,34 +114,102 @@ public class MainController {
     private Scene scene;
     private Parent root;
 
-    @FXML
-    public void initialize(){
+    private EditController editController;
+    private Dragon currentDragon = null;
 
-        ownerColumn1.setCellValueFactory(dragon -> new SimpleStringProperty(dragon.getValue().getOwner()));
-        idColumn1.setCellValueFactory(dragon -> new SimpleIntegerProperty(dragon.getValue().getId()).asObject());
-        nameColumn1.setCellValueFactory(dragon -> new SimpleStringProperty(dragon.getValue().getName()));
-        dateColumn1.setCellValueFactory(dragon -> new SimpleStringProperty(dragon.getValue().getCreationDate().toString()));
-        ageColumn1.setCellValueFactory(dragon -> new SimpleLongProperty(dragon.getValue().getAge()).asObject());
-        weightColumn1.setCellValueFactory(dragon -> new SimpleLongProperty(dragon.getValue().getWeight()).asObject());
-        speakingColumn1.setCellValueFactory(dragon -> new SimpleBooleanProperty(dragon.getValue().getSpeaking()));
-        typeColumn1.setCellValueFactory(dragon -> new SimpleStringProperty(dragon.getValue().getType().getName()));
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        ownerColumn.setCellValueFactory(dragon -> new SimpleStringProperty(dragon.getValue().getOwner()));
+        idColumn.setCellValueFactory(dragon -> new SimpleIntegerProperty(dragon.getValue().getId()).asObject());
+        nameColumn.setCellValueFactory(dragon -> new SimpleStringProperty(dragon.getValue().getName()));
+        dateColumn.setCellValueFactory(dragon -> new SimpleStringProperty(dragon.getValue().getCreationDate().toString()));
+        ageColumn.setCellValueFactory(dragon -> new SimpleLongProperty(dragon.getValue().getAge()).asObject());
+        weightColumn.setCellValueFactory(dragon -> new SimpleLongProperty(dragon.getValue().getWeight()).asObject());
+        speakingColumn.setCellValueFactory(dragon -> new SimpleBooleanProperty(dragon.getValue().getSpeaking()));
+        typeColumn.setCellValueFactory(dragon -> new SimpleStringProperty(
+                dragon.getValue().getType().getName()  != null ?
+                        dragon.getValue().getType().getName() :
+                        "null"));
 
-        nameColumn2.setCellValueFactory(dragon -> new SimpleStringProperty(dragon.getValue().getKiller().getName()));
-        passportColumn2.setCellValueFactory(dragon -> new SimpleStringProperty(dragon.getValue().getKiller().getPassportID()));
-        eye_colorColumn2.setCellValueFactory(dragon -> new SimpleStringProperty(dragon.getValue().getKiller().getEyeColor().name()));
-        hair_colorColumn2.setCellValueFactory(dragon -> new SimpleStringProperty(dragon.getValue().getKiller().getHairColor().name()));
-        nationalityColumn2.setCellValueFactory(dragon -> new SimpleStringProperty(dragon.getValue().getKiller().getNationality().name()));
-        killed_dragonsColumn2.setCellValueFactory(dragon -> new SimpleLongProperty(dragon.getValue().getKiller().getCountKilledDragons()).asObject());
+        kNameColumn.setCellValueFactory(dragon -> new SimpleStringProperty(
+                dragon.getValue().getKiller() != null ?
+                        dragon.getValue().getKiller().getName() :
+                        "null"));
+        kPassportColumn.setCellValueFactory(dragon -> new SimpleStringProperty(
+                dragon.getValue().getKiller() != null ?
+                        dragon.getValue().getKiller().getPassportID() :
+                        "null"));
+        kEyeColorColumn.setCellValueFactory(dragon -> new SimpleStringProperty(
+                dragon.getValue().getKiller() != null ?
+                        dragon.getValue().getKiller().getEyeColor().name() :
+                        "null"));
+        kHairColorColumn.setCellValueFactory(dragon -> new SimpleStringProperty(
+                dragon.getValue().getKiller() != null ?
+                        dragon.getValue().getKiller().getHairColor().name() :
+                        "null"));
+        kNationalityColumn.setCellValueFactory(dragon -> new SimpleStringProperty(dragon.getValue().getKiller() != null ?
+                dragon.getValue().getKiller().getNationality().name() :
+                "null"));
+        kKilledDragonsColumn.setCellValueFactory(dragon -> new SimpleLongProperty(
+                dragon.getValue().getKiller() != null ?
+                        dragon.getValue().getKiller().getCountKilledDragons() :
+                        0).asObject());
 
 
-        xColumn3.setCellValueFactory(dragon -> new SimpleLongProperty(dragon.getValue().getCoordinates().getX()).asObject());
-        yColumn3.setCellValueFactory(dragon -> new SimpleFloatProperty(dragon.getValue().getCoordinates().getY()).asObject());
+        xColumn.setCellValueFactory(dragon -> new SimpleLongProperty(dragon.getValue().getCoordinates().getX()).asObject());
+        yColumn.setCellValueFactory(dragon -> new SimpleFloatProperty(dragon.getValue().getCoordinates().getY()).asObject());
 
-        dragonsTable.setItems(FXCollections.observableArrayList(CollectionManager.getCollection()));
-//        initializeUser();
+
+        new Thread(() -> {
+                try {
+                    Platform.runLater(this::fillTable);
+                    Platform.runLater(this::initializeUser);
+//                    Platform.runLater(this::visualize);
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    System.out.println(e.getMessage());
+                    logger.error(e);
+                }
+        }).start();
+
+
+        new Thread(() -> {
+            while (true){
+                if (!isEditing){
+                    try {
+                        Platform.runLater(this::updateTable);
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        System.out.println(e.getMessage());
+                        logger.error(e);
+                    }
+                }
+            }
+
+        }).start();
+
 
     }
 
+    public void fillTable() {
+        try {
+            collectionOfDragons = client.getCollectionFromServer();
+            ObservableList<Dragon> data = FXCollections.observableArrayList(collectionOfDragons);
+            dragonsTable.setItems(data);
+        } catch (IllegalStateException e) {
+            logger.error(e);
+        }
+    }
+
+    synchronized public void updateTable(){
+        ArrayList<Dragon> tempCollection = client.getCollectionFromServer();
+        if (!collectionOfDragons.equals(tempCollection)){
+            collectionOfDragons = tempCollection;
+        }
+        fillTable();
+    }
     public void initializeUser(){
         usernameLabel.setText("Username: " + client.getClientID().getLogin());
     }
@@ -148,43 +218,104 @@ public class MainController {
     private void add(ActionEvent e){
         try {
             switchToEditing(e);
-            //кароче чекайте
-            //мы положим все принятые данные в массив строк
-            //пошлем эту красоту в драгон форм.билд
-            //получим отвалидированного дракона
-            //отправим на сервак, он все сделает. усе
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-            //Alert с ошибкой
-        }
-
-
-        try {
             Command command = commandFactory.buildCommand("add");
-            DragonForm newDragon = new DragonForm();
-            try {
+            command.setClientID(client.getClientID());
+            command.setObjectArgument(currentDragon);
 
-            } catch (FailedBuildingException | IllegalValueException e) {
-                Console.print(e.getMessage(), false);
-            }
-        } catch (IllegalValueException ex) {
-            throw new RuntimeException(ex);
-            //Alert с ошибкой
+            client.send(command);
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+            alert.showAlert("Result", null, client.handleResponse().getResponse().toString());
+
+        } catch (Exception ex) {
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            alert.showAlert("Error", null, ex.getMessage());
         }
     }
 
+    @FXML
+    private void clear(ActionEvent e){
+        try {
+            switchToEditing(e);
+            Command command = commandFactory.buildCommand("clear");
+            command.setClientID(client.getClientID());
+            command.setObjectArgument(currentDragon);
+
+            client.send(command);
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+            alert.showAlert("Result", null, client.handleResponse().getResponse().toString());
+
+        } catch (Exception ex) {
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            alert.showAlert("Error", null, ex.getMessage());
+        }
+    }
+
+    @FXML
+    private void info(ActionEvent event){
+        try {
+            Command command = commandFactory.buildCommand("info");
+            command.setClientID(client.getClientID());
+
+            client.send(command);
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+            alert.showAlert("Result", null, client.handleResponse().getResponse().toString());
+        } catch (IllegalValueException ex) {
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            alert.showAlert("Error", null, ex.getMessage());
+        }
+    }
+
+    @FXML
+    private void help(ActionEvent event){
+        try {
+            Command command = commandFactory.buildCommand("help");
+            command.setClientID(client.getClientID());
+
+            client.send(command);
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+            alert.showAlert("Result", null, client.handleResponse().getResponse().toString());
+        } catch (IllegalValueException ex) {
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            alert.showAlert("Error", null, ex.getMessage());
+        }
+    }
+
+
+    @FXML
+    private void printFieldDescendingAge(ActionEvent event){
+        try {
+            Command command = commandFactory.buildCommand("print_field_descending_age");
+            command.setClientID(client.getClientID());
+
+            client.send(command);
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+            alert.showAlert("Result", null, client.handleResponse().getResponse().toString());
+        } catch (IllegalValueException ex) {
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            alert.showAlert("Error", null, ex.getMessage());
+        }
+    }
+
+
+
+
     private void switchToEditing(ActionEvent event) throws IOException {
+        isEditing = true;
         FXMLLoader loader = new FXMLLoader(getClass().getResource("edit-view.fxml"));
         root = loader.load();
 
-        MainController mainController = loader.getController();
-        mainController.setClient(client);
+        editController = loader.getController();
+        editController.setClient(client);
 
-        stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+        editController.setMainController(this);
+
+//        stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+        Stage stage1 = new Stage();
+        editController.setStage(stage1);
         scene = new Scene(root);
-        stage.setScene(scene);
-        stage.show();
+        stage1.setScene(scene);
+        stage1.showAndWait();
+        isEditing = false;
     }
-
 
 }

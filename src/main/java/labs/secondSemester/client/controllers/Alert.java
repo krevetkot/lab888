@@ -9,6 +9,7 @@ public class Alert extends javafx.scene.control.Alert {
         setTitle(title);
         setHeaderText(header);
         setContentText(content);
+        setResizable(true);
 
         showAndWait();
     }
