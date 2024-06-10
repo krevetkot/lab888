@@ -2,6 +2,10 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
@@ -26,13 +30,13 @@
             <Button fx:id="executeFileButton" mnemonicParsing="false" onAction="#executeFile" text="ExecuteFile" />
          </children>
       </HBox>
-      <TabPane layoutX="14.0" layoutY="14.0" prefHeight="458.0" prefWidth="849.0" tabClosingPolicy="UNAVAILABLE">
+      <TabPane layoutX="14.0" layoutY="48.0" prefHeight="424.0" prefWidth="849.0" tabClosingPolicy="UNAVAILABLE">
         <tabs>
             <Tab fx:id="dragonTab" text="Dragon">
                <content>
-                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="374.0" prefWidth="849.0">
+                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="297.0" prefWidth="849.0">
                      <children>
-                        <TableView fx:id="dragonsTable" prefHeight="407.0" prefWidth="849.0">
+                        <TableView fx:id="dragonsTable" prefHeight="393.0" prefWidth="849.0">
                            <columns>
                               <TableColumn fx:id="idColumn" prefWidth="53.24368667602539" text="id" />
                                <TableColumn fx:id="ownerColumn" prefWidth="72.60503387451172" text="owner" />
@@ -69,5 +73,19 @@
             <Button fx:id="updateButton" mnemonicParsing="false" onAction="#update" prefHeight="26.0" prefWidth="65.0" text="Update" />
          </children>
       </HBox>
+      <MenuBar layoutY="7.0" prefHeight="27.0" prefWidth="872.0">
+        <menus>
+          <Menu mnemonicParsing="false">
+               <graphic>
+                  <MenuButton fx:id="languageSwitcher" mnemonicParsing="false" text="Language">
+                    <items>
+                      <MenuItem mnemonicParsing="false" text="ru" />
+                      <MenuItem mnemonicParsing="false" text="Action 2" />
+                    </items>
+                  </MenuButton>
+               </graphic>
+          </Menu>
+        </menus>
+      </MenuBar>
    </children>
 </AnchorPane>

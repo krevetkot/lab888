@@ -1,5 +1,7 @@
 package labs.secondSemester.client.controllers;
 
+import javafx.animation.FadeTransition;
+import javafx.animation.FillTransition;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -17,6 +19,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import labs.secondSemester.client.Client;
 import labs.secondSemester.client.CommandFactory;
 import labs.secondSemester.commons.commands.Command;
@@ -220,12 +223,13 @@ public class MainController implements Initializable {
     }
 
     synchronized public void updateTable(){
-        logger.info("Таблица обновляется.");
         ArrayList<Dragon> tempCollection = client.getCollectionFromServer();
         if (!CollectionManager.getCollection().equals(tempCollection)){
+            logger.info("Таблица обновляется.");
             CollectionManager.setCollectionOfDragons(tempCollection);
+            fillTable();
+            drawVisualisation();
         }
-        fillTable();
     }
     public void initializeUser(){
         usernameLabel.setText("Username: " + client.getClientID().getLogin());
@@ -358,7 +362,6 @@ public class MainController implements Initializable {
 
     @FXML
     private void help(ActionEvent event){
-//        draw(CollectionManager.getCollection().getFirst());
         logger.info("Выполнение команды Help.");
         try {
             Command command = commandFactory.buildCommand("help");
@@ -446,16 +449,24 @@ public class MainController implements Initializable {
         logger.info("Закрытие окна редактирования.");
     }
 
-    @FXML
-    private void goToVisual(){
+    private void drawVisualisation(){
+        visualPane.getChildren().clear();
         for (Dragon elem: CollectionManager.getCollection()){
             draw(elem);
         }
     }
 
+    @FXML
+    private void goToVisual(){
+        drawVisualisation();
+    }
+
     private void draw(Dragon dragon){
         int koef = 100;
-        Circle circle = new Circle(dragon.getCoordinates().getX()*koef, dragon.getCoordinates().getY()*koef, dragon.getWeight(), generateColor(client.getClientID()));
+        Color color = generateColor(client.getClientID());
+        Circle circle = new Circle(dragon.getCoordinates().getX()*koef, dragon.getCoordinates().getY()*koef, dragon.getWeight(), color);
+
+
 
         circle.setOnMouseClicked(event -> {
             try {
@@ -478,7 +489,15 @@ public class MainController implements Initializable {
         label.setLabelFor(circle);
         label.setLayoutX(circle.getCenterX() - label.getWidth() / 2);
         label.setLayoutY(circle.getCenterY() - label.getHeight() / 2);
+
+        FadeTransition fadeIn = new FadeTransition(Duration.seconds(1.5), circle);
+        fadeIn.setFromValue(0);
+        fadeIn.setToValue(1);
+
+
         visualPane.getChildren().addAll(circle, label);
+
+        fadeIn.play();
     }
 
     public Color generateColor(ClientIdentification client){
