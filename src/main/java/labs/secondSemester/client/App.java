@@ -36,6 +36,10 @@ public class App extends Application {
         loginStage();
     }
 
+    @Override
+    public void stop(){
+        System.exit(0);
+    }
 
     public void loginStage(){
         var authLoader = new FXMLLoader(getClass().getResource("fxml/login-view.fxml"));

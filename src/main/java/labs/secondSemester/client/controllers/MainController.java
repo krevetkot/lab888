@@ -358,7 +358,7 @@ public class MainController implements Initializable {
 
     @FXML
     private void help(ActionEvent event){
-        draw(CollectionManager.getCollection().getFirst());
+//        draw(CollectionManager.getCollection().getFirst());
         logger.info("Выполнение команды Help.");
         try {
             Command command = commandFactory.buildCommand("help");
@@ -446,20 +446,53 @@ public class MainController implements Initializable {
         logger.info("Закрытие окна редактирования.");
     }
 
+    @FXML
+    private void goToVisual(){
+        for (Dragon elem: CollectionManager.getCollection()){
+            draw(elem);
+        }
+    }
 
-    public void draw(Dragon dragon){
-        Circle circle = new Circle(dragon.getCoordinates().getX(), dragon.getCoordinates().getY(), 100, generateColor(client.getClientID()));
+    private void draw(Dragon dragon){
+        int koef = 100;
+        Circle circle = new Circle(dragon.getCoordinates().getX()*koef, dragon.getCoordinates().getY()*koef, dragon.getWeight(), generateColor(client.getClientID()));
 
-        visualPane.getChildren().add(circle);
+        circle.setOnMouseClicked(event -> {
+            try {
+                switchToEditing(new ActionEvent(), dragon);
+                if (currentDragon!=null){
+                    Command command = commandFactory.buildCommand("update " + dragon.getId());
+                    command.setObjectArgument(currentDragon);
+
+                    client.send(command);
+                    myAlert.showResult(client.handleResponse().getResponse().toString());
+                    updateTable();
+                }
+            } catch (IOException | IllegalValueException e) {
+                logger.error(e);
+                myAlert.showError(e.getMessage());
+            }
+        });
+
+        Label label = new Label(dragon.getName());
+        label.setLabelFor(circle);
+        label.setLayoutX(circle.getCenterX() - label.getWidth() / 2);
+        label.setLayoutY(circle.getCenterY() - label.getHeight() / 2);
+        visualPane.getChildren().addAll(circle, label);
     }
 
     public Color generateColor(ClientIdentification client){
-        int x = client.getLogin().hashCode()*1000000;
-        String res = String.valueOf(Math.abs(x));
-        String red = "0."+res.charAt(0)+res.charAt(1)+res.charAt(2)+res.charAt(3);
-        String green = "0."+res.charAt(4)+res.charAt(5)+res.charAt(6)+res.charAt(7);
-        String blue = "0."+res.charAt(8)+res.charAt(9)+res.charAt(10)+res.charAt(11);
+        try {
+            int x = client.getLogin().hashCode()*1000000;
+            String res = String.valueOf(Math.abs(x));
+            String red = "0."+res.charAt(0)+res.charAt(1);
+            String green = "0."+res.charAt(2)+res.charAt(3);
+            String blue = "0."+res.charAt(4)+res.charAt(5);
 
-        return new Color(Double.parseDouble(red), Double.parseDouble(green), Double.parseDouble(blue), 1);
+            return new Color(Double.parseDouble(red), Double.parseDouble(green), Double.parseDouble(blue), 1);
+        } catch (Exception ex){
+            myAlert.showError("Трудности с генерацией цвета: " + ex.getMessage());
+            return new Color(0, 0, 0, 0);
+        }
     }
 }
