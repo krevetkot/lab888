@@ -80,9 +80,7 @@ public class EditController implements Initializable {
         nationality.setItems(FXCollections.observableArrayList(Country.values()));
 
         new Thread(() -> {
-            if (dragon!=null) {
-                Platform.runLater(this::fillFields);
-            }
+            Platform.runLater(this::fillFields);
         }).start();
 
         myAlert = new MyAlert(null);
@@ -90,25 +88,27 @@ public class EditController implements Initializable {
 
 
     private void fillFields(){
-        dragonName.setText(dragon.getName());
-        coordX.setText(String.valueOf(dragon.getCoordinates().getX()));
-        coordY.setText(String.valueOf(dragon.getCoordinates().getY()));
-        age.setText(String.valueOf(dragon.getAge()));
-        weight.setText(String.valueOf(dragon.getWeight()));
-        speaking.setSelected(dragon.getSpeaking());
-        if (dragon.getType()!=null){
-            dragonType.setValue(dragon.getType());
-        }
-        if (dragon.getKiller()!=null){
-            existingKiller.setSelected(true);
-            killerName.setText(dragon.getKiller().getName());
-            passportID.setText(dragon.getKiller().getPassportID());
-            eyeColor.setValue(dragon.getKiller().getEyeColor());
-            hairColor.setValue(dragon.getKiller().getHairColor());
-            nationality.setValue(dragon.getKiller().getNationality());
-            killedDragons.setText(String.valueOf(dragon.getKiller().getCountKilledDragons()));
-        } else {
-            existingKiller.setSelected(false);
+        if (dragon!=null) {
+            dragonName.setText(dragon.getName());
+            coordX.setText(String.valueOf(dragon.getCoordinates().getX()));
+            coordY.setText(String.valueOf(dragon.getCoordinates().getY()));
+            age.setText(String.valueOf(dragon.getAge()));
+            weight.setText(String.valueOf(dragon.getWeight()));
+            speaking.setSelected(dragon.getSpeaking());
+            if (dragon.getType() != null) {
+                dragonType.setValue(dragon.getType());
+            }
+            if (dragon.getKiller() != null) {
+                existingKiller.setSelected(true);
+                killerName.setText(dragon.getKiller().getName());
+                passportID.setText(dragon.getKiller().getPassportID());
+                eyeColor.setValue(dragon.getKiller().getEyeColor());
+                hairColor.setValue(dragon.getKiller().getHairColor());
+                nationality.setValue(dragon.getKiller().getNationality());
+                killedDragons.setText(String.valueOf(dragon.getKiller().getCountKilledDragons()));
+            } else {
+                existingKiller.setSelected(false);
+            }
         }
     }
 
