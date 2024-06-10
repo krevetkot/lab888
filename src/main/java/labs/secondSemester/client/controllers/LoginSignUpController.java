@@ -4,13 +4,12 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 import labs.secondSemester.client.Client;
-import labs.secondSemester.client.CommandFactory;
 import labs.secondSemester.commons.commands.Command;
 import labs.secondSemester.commons.commands.Login;
 import labs.secondSemester.commons.commands.SignUp;
-import labs.secondSemester.commons.managers.CollectionManager;
 import labs.secondSemester.commons.network.ClientIdentification;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -36,6 +35,8 @@ public class LoginSignUpController {
     private Scene scene;
     private Parent root;
 
+    private MyAlert myAlert;
+
     public LoginSignUpController(){
         loginField = new TextField();
         passwordField = new TextField();
@@ -55,6 +56,8 @@ public class LoginSignUpController {
                 passwordField.setText(oldValue);
             }
         });
+
+        myAlert = new MyAlert(Alert.AlertType.NONE);
     }
 
 
@@ -73,8 +76,7 @@ public class LoginSignUpController {
             client.setClientID(new ClientIdentification(login, hashedPassword));
             client.getClientID().setAuthorized(true);
 
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
-            alert.showAlert("Confirmation", null, "Вы успешно вошли в аккаунт.");
+            myAlert.showInfo("Вы успешно вошли в аккаунт.");
             try {
                 switchToMainScene(e);
             } catch (IOException ex) {
@@ -82,8 +84,7 @@ public class LoginSignUpController {
             }
         }
         else {
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
-            alert.showAlert("Error", null, "Вход в аккаунт не выполнен.");
+            myAlert.showError("Вход в аккаунт не выполнен.");
         }
 
     }
@@ -103,8 +104,7 @@ public class LoginSignUpController {
             client.setClientID(new ClientIdentification(login, hashedPassword));
             client.getClientID().setAuthorized(true);
 
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
-            alert.showAlert("Confirmation", null, "Вы успешно вошли в аккаунт.");
+            myAlert.showInfo("Вы успешно вошли в аккаунт.");
             try {
                 switchToMainScene(e);
             } catch (IOException ex) {
@@ -112,21 +112,17 @@ public class LoginSignUpController {
             }
         }
         else {
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
-            alert.showAlert("Error", null, "Вход в аккаунт не выполнен.");
+            myAlert.showError("Вход в аккаунт не выполнен.");
         }
     }
 
     public void switchToMainScene(ActionEvent event) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("main-view.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("fxml/main-view.fxml"));
         root = loader.load();
 
         MainController mainController = loader.getController();
         mainController.setClient(client);
         mainController.setStage(stage);
-        mainController.setCommandFactory(new CommandFactory(client.getClientID()));
-
-//        mainController.setCollectionOfDragons(client.getCollectionFromServer());
 
         stage = (Stage)((Node)event.getSource()).getScene().getWindow();
         scene = new Scene(root);

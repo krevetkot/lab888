@@ -35,6 +35,7 @@ public class Client {
     private InetSocketAddress serverAddress;
     private Selector selector;
     private final Serializer serializer;
+    @Getter
     private final FileManager fileManager;
     private final String ip;
     private final int BUFFER_LENGTH = 10000;
@@ -277,7 +278,7 @@ public class Client {
             SocketAddress address = null;
             int time = 1;
             int tries = 1;
-            int period = 100000;
+            int period = 500000;
             while (!serverAddress.equals(address)) {
                 if (time % period == 0) {
                     connectServer(tries);

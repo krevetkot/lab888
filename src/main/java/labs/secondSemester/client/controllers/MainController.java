@@ -95,7 +95,7 @@ public class MainController implements Initializable {
     @FXML
     private Button printFieldDescendingAgeButton;
     @FXML
-    private Button removeByID;
+    private Button removeByIDButton;
     @FXML
     private Button updateButton;
     @FXML
@@ -111,9 +111,49 @@ public class MainController implements Initializable {
 
     private EditController editController;
     private Dragon currentDragon = null;
+    private MyDialog myDialog;
+    private MyAlert myAlert;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        new Thread(() -> {
+            Platform.runLater(this::initializeTable);
+            Platform.runLater(this::fillTable);
+            Platform.runLater(this::initializeUser);
+        }).start();
+
+
+        AtomicBoolean work = new AtomicBoolean(true);
+        new Thread(() -> {
+            while (work.get()){
+                if (!isEditing){
+                    try {
+                        Platform.runLater(this::updateTable);
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        System.out.println(e.getMessage());
+                        logger.error(e);
+                    }
+                }
+            }
+
+        }).start();
+
+
+        Thread closingThreads = new Thread(() ->
+        {
+            work.set(false);
+            System.out.println("Все потоки закрыты");
+        });
+        Runtime.getRuntime().addShutdownHook(closingThreads);
+
+        myDialog = new MyDialog();
+        myAlert = new MyAlert(Alert.AlertType.NONE);
+
+    }
+
+    private void initializeTable(){
         ownerColumn.setCellValueFactory(dragon -> new SimpleStringProperty(dragon.getValue().getOwner()));
         idColumn.setCellValueFactory(dragon -> new SimpleIntegerProperty(dragon.getValue().getId()).asObject());
         nameColumn.setCellValueFactory(dragon -> new SimpleStringProperty(dragon.getValue().getName()));
@@ -155,43 +195,11 @@ public class MainController implements Initializable {
         yColumn.setCellValueFactory(dragon -> new SimpleFloatProperty(dragon.getValue().getCoordinates().getY()).asObject());
 
 
-        new Thread(() -> {
-            Platform.runLater(this::fillTable);
-            Platform.runLater(this::initializeUser);
-        }).start();
-
-
-        AtomicBoolean work = new AtomicBoolean(true);
-        new Thread(() -> {
-            while (work.get()){
-                if (!isEditing){
-                    try {
-                        Platform.runLater(this::updateTable);
-                        Thread.sleep(5000);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        System.out.println(e.getMessage());
-                        logger.error(e);
-                    }
-                }
-            }
-
-        }).start();
-
-
-        Thread closingThreads = new Thread(() ->
-        {
-            work.set(false);
-            System.out.println("Все потоки закрыты");
-        });
-        Runtime.getRuntime().addShutdownHook(closingThreads);
-
     }
-
     public void fillTable() {
         try {
-            collectionOfDragons = client.getCollectionFromServer();
-            ObservableList<Dragon> data = FXCollections.observableArrayList(collectionOfDragons);
+            CollectionManager.setCollectionOfDragons(client.getCollectionFromServer());
+            ObservableList<Dragon> data = FXCollections.observableArrayList(CollectionManager.getCollection());
             dragonsTable.setItems(data);
         } catch (IllegalStateException e) {
             logger.error(e);
@@ -202,13 +210,14 @@ public class MainController implements Initializable {
     synchronized public void updateTable(){
         logger.info("Таблица обновляется.");
         ArrayList<Dragon> tempCollection = client.getCollectionFromServer();
-        if (!collectionOfDragons.equals(tempCollection)){
-            collectionOfDragons = tempCollection;
+        if (!CollectionManager.getCollection().equals(tempCollection)){
+            CollectionManager.setCollectionOfDragons(tempCollection);
         }
         fillTable();
     }
     public void initializeUser(){
         usernameLabel.setText("Username: " + client.getClientID().getLogin());
+        commandFactory = new CommandFactory(client.getClientID());
     }
 
     @FXML
@@ -216,57 +225,72 @@ public class MainController implements Initializable {
         logger.info("Выполнение команды Add.");
         try {
             switchToEditing(e, null);
-            Command command = commandFactory.buildCommand("add");
-            command.setClientID(client.getClientID());
-            command.setObjectArgument(currentDragon);
+            if (currentDragon!=null){
+                Command command = commandFactory.buildCommand("add");
+                command.setObjectArgument(currentDragon);
 
-            client.send(command);
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
-            alert.showAlert("Result", null, client.handleResponse().getResponse().toString());
-            updateTable();
+                client.send(command);
+                myAlert.showResult(client.handleResponse().getResponse().toString());
+                updateTable();
+            }
         } catch (Exception ex) {
             logger.error(ex);
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
-            alert.showAlert("Error", null, ex.getMessage());
+            myAlert.showError(ex.getMessage());
         }
     }
 
     @FXML
     synchronized private void update(ActionEvent e){
-        logger.info("Выполнение команды Add.");
+        logger.info("Выполнение команды Update.");
         try {
 
-            int dragonID;
-            TextInputDialog dialog = new TextInputDialog();
-            dialog.setContentText("Пожалуйста, введите ID дракона:");
-
-            Optional<String> result = dialog.showAndWait();
-            if (result.isPresent()){
-                dragonID = Integer.parseInt(result.get());
-            } else {
+            Integer dragonID = myDialog.askInteger("Пожалуйста, введите ID дракона:");
+            if (dragonID==null){
                 return;
             }
 
-            CollectionManager.setCollectionOfDragons(collectionOfDragons);
             Dragon dragon = CollectionManager.getById(dragonID);
             switchToEditing(e, dragon);
-            Command command = commandFactory.buildCommand("add");
-            command.setClientID(client.getClientID());
-            command.setObjectArgument(currentDragon);
+            if (currentDragon!=null){
+                Command command = commandFactory.buildCommand("update " + dragonID);
+                command.setObjectArgument(currentDragon);
 
-            client.send(command);
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
-            alert.showAlert("Result", null, client.handleResponse().getResponse().toString());
-            updateTable();
+                client.send(command);
+                myAlert.showResult(client.handleResponse().getResponse().toString());
+                updateTable();
+            }
         } catch (NumberFormatException ex) {
             logger.error(ex);
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
-            alert.showAlert("Error", null, "ID должен быть целым числом.");
+            myAlert.showError("ID должен быть целым числом.");
         }
         catch (Exception ex) {
             logger.error(ex);
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
-            alert.showAlert("Error", null, ex.getMessage());
+            myAlert.showError(ex.getMessage());
+        }
+    }
+
+    @FXML
+    private void removeByID(ActionEvent e){
+        logger.info("Выполнение команды RemoveByID.");
+        try {
+
+            Integer dragonID = myDialog.askInteger("Пожалуйста, введите ID дракона:");
+            if (dragonID==null){
+                return;
+            }
+
+            Command command = commandFactory.buildCommand("remove_by_id " + dragonID);
+
+            client.send(command);
+            myAlert.showResult(client.handleResponse().getResponse().toString());
+            updateTable();
+        } catch (NumberFormatException ex) {
+            logger.error(ex);
+            myAlert.showError("ID должен быть целым числом.");
+        }
+        catch (Exception ex) {
+            logger.error(ex);
+            myAlert.showError(ex.getMessage());
         }
     }
 
@@ -280,13 +304,11 @@ public class MainController implements Initializable {
             command.setObjectArgument(currentDragon);
 
             client.send(command);
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
-            alert.showAlert("Result", null, client.handleResponse().getResponse().toString());
+            myAlert.showResult(client.handleResponse().getResponse().toString());
 
         } catch (Exception ex) {
             logger.error(ex);
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
-            alert.showAlert("Error", null, ex.getMessage());
+            myAlert.showError(ex.getMessage());
         }
     }
 
@@ -296,18 +318,15 @@ public class MainController implements Initializable {
         try {
             switchToEditing(e, null);
             Command command = commandFactory.buildCommand("reorder");
-            command.setClientID(client.getClientID());
             command.setObjectArgument(currentDragon);
 
             client.send(command);
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
-            alert.showAlert("Result", null, client.handleResponse().getResponse().toString());
+            myAlert.showResult(client.handleResponse().getResponse().toString());
             updateTable();
 
         } catch (Exception ex) {
             logger.error(ex);
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
-            alert.showAlert("Error", null, ex.getMessage());
+            myAlert.showError(ex.getMessage());
         }
     }
 
@@ -316,15 +335,12 @@ public class MainController implements Initializable {
         logger.info("Выполнение команды Info.");
         try {
             Command command = commandFactory.buildCommand("info");
-            command.setClientID(client.getClientID());
 
             client.send(command);
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
-            alert.showAlert("Result", null, client.handleResponse().getResponse().toString());
+            myAlert.showResult(client.handleResponse().getResponse().toString());
         } catch (IllegalValueException ex) {
             logger.error(ex);
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
-            alert.showAlert("Error", null, ex.getMessage());
+            myAlert.showError(ex.getMessage());
         }
     }
 
@@ -333,35 +349,71 @@ public class MainController implements Initializable {
         logger.info("Выполнение команды Help.");
         try {
             Command command = commandFactory.buildCommand("help");
-            command.setClientID(client.getClientID());
 
             client.send(command);
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
-            alert.showAlert("Result", null, client.handleResponse().getResponse().toString());
+            myAlert.showResult(client.handleResponse().getResponse().toString());
         } catch (IllegalValueException ex) {
             logger.error(ex);
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
-            alert.showAlert("Error", null, ex.getMessage());
+            myAlert.showError(ex.getMessage());
         }
     }
 
 
     @FXML
     private void printFieldDescendingAge(ActionEvent event){
-        logger.info("Выполнение команды printFieldDescendingAge.");
+        logger.info("Выполнение команды PrintFieldDescendingAge.");
         try {
             Command command = commandFactory.buildCommand("print_field_descending_age");
-            command.setClientID(client.getClientID());
 
             client.send(command);
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
-            alert.showAlert("Result", null, client.handleResponse().getResponse().toString());
+            myAlert.showResult(client.handleResponse().getResponse().toString());
         } catch (IllegalValueException ex) {
             logger.error(ex);
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
-            alert.showAlert("Error", null, ex.getMessage());
+            myAlert.showError(ex.getMessage());
         }
     }
+
+
+    @FXML
+    private void maxByKiller(ActionEvent event){
+        logger.info("Выполнение команды MaxByKiller.");
+        try {
+            Command command = commandFactory.buildCommand("max_by_killer");
+
+            client.send(command);
+            myAlert.showResult(client.handleResponse().getResponse().toString());
+        } catch (IllegalValueException ex) {
+            logger.error(ex);
+            myAlert.showError(ex.getMessage());
+        }
+    }
+
+    @FXML
+    private void executeFile(ActionEvent event){
+        logger.info("Выполнение команды ExecuteFile.");
+        try {
+
+            String file;
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setContentText("Пожалуйста, введите полный путь до файла:");
+
+            Optional<String> result = dialog.showAndWait();
+            if (result.isPresent()){
+                file = result.get();
+            } else {
+                return;
+            }
+
+            client.getFileManager().executeFile(file, client.getClientID());
+
+            myAlert.showResult(client.handleResponse().getResponse().toString());
+        } catch (Exception ex) {
+            logger.error(ex);
+            myAlert.showError(ex.getMessage());
+        }
+    }
+
+
 
 
 
@@ -369,7 +421,7 @@ public class MainController implements Initializable {
     private void switchToEditing(ActionEvent event, Dragon dragon) throws IOException {
         logger.info("Открытие окна редактирования.");
         isEditing = true;
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("edit-view.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("fxml/edit-view.fxml"));
         root = loader.load();
 
         editController = loader.getController();

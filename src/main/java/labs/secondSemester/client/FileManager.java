@@ -1,5 +1,7 @@
 package labs.secondSemester.client;
 
+import javafx.scene.control.Alert;
+import labs.secondSemester.client.controllers.MyAlert;
 import labs.secondSemester.commons.commands.Command;
 import labs.secondSemester.commons.commands.ExecuteFile;
 import labs.secondSemester.commons.commands.Exit;
@@ -16,19 +18,25 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class FileManager {
     private final Client client;
+//    private MyAlert myAlert;
+    private ArrayList<Response> responses;
 
     public FileManager(Client client){
         this.client = client;
+//        myAlert = new MyAlert(Alert.AlertType.NONE);
+        responses = new ArrayList<>();
     }
 
     public void executeFile(String argument, ClientIdentification clientID) {
         try {
             if (!(new File(argument).isFile())) {
-                throw new IOException("Невозможно прочесть файл.");
+//                myAlert.showError("Невозможно прочесть файл.");
+                return;
             }
             ScriptManager.addFile(argument);
             BufferedReader br = ScriptManager.getBufferedReaders().getLast();
@@ -40,7 +48,7 @@ public class FileManager {
                 String[] command = line.split(" ");
                 if (command[0].equals("execute_file")) {
                     if (ScriptManager.isRecursive(command[1])) {
-                        throw new RuntimeException("Найдена рекурсия! Повторно вызывается файл " + command[1]);
+//                        myAlert.showError("Найдена рекурсия! Повторно вызывается файл " + command[1]);
                     }
                 }
 
@@ -54,7 +62,7 @@ public class FileManager {
                             Dragon buildedDragon = newDragon.build(fileScanner, true);
                             scriptCommand.setObjectArgument(buildedDragon);
                         } catch (FailedBuildingException | IllegalValueException e) {
-                            Console.print(e.getMessage(), false);
+                            responses.add(new Response(e.getMessage()));
                         }
                     }
 
@@ -68,14 +76,12 @@ public class FileManager {
                         client.send(scriptCommand);
 
                         Response response = client.receive(ByteBuffer.allocate(10000));
-                        for (String element: response.getResponse()){
-                            System.out.println(element);
-                        }
+                        responses.add(response);
                     }
 
 
                 } catch (Exception e) {
-                    System.out.println(e.getMessage());
+                    responses.add(new Response(e.getMessage()));
                     break;
                 }
             }
@@ -84,10 +90,10 @@ public class FileManager {
             ScriptManager.getPathQueue().removeLast();
             br.close();
 
-            System.out.println("------ Выполнение файла " + argument + " завершено ------");
+            responses.add(new Response("------ Выполнение файла " + argument + " завершено ------"));
 
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+//            myAlert.showError(e.getMessage());
         }
 
 

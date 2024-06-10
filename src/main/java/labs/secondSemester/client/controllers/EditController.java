@@ -65,6 +65,8 @@ public class EditController implements Initializable {
     @FXML
     private TextField killedDragons;
 
+    private MyAlert myAlert;
+
     private Dragon dragon; //для апдейта
 
     private static final Logger logger = LogManager.getLogger(EditController.class);
@@ -82,6 +84,8 @@ public class EditController implements Initializable {
                 Platform.runLater(this::fillFields);
             }
         }).start();
+
+        myAlert = new MyAlert(null);
     }
 
 
@@ -130,22 +134,16 @@ public class EditController implements Initializable {
                 dragonData += killedDragons.getText() + "\n";
             }
 
-        } catch (Exception e){
-            logger.error(e);
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
-            alert.showAlert("Error", null, e.getMessage());
-        }
+            DragonForm dragonForm = new DragonForm();
+            Dragon newDragon = dragonForm.build(new Scanner(dragonData), true);
+            newDragon.setOwner(client.getClientID().getLogin());
+            mainController.setCurrentDragon(newDragon);
+            mainController.setEditing(false);
+            stage.close();
 
-        DragonForm dragonForm = new DragonForm();
-        try {
-            mainController.setCurrentDragon(dragonForm.build(new Scanner(dragonData), true));
-        } catch (IllegalValueException | FailedBuildingException e) {
+        } catch (NullPointerException | IllegalValueException | FailedBuildingException e) {
             logger.error(e);
-            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
-            alert.showAlert("Error", null, e.getMessage());
+            myAlert.showError("Проверьте правильность заполнения всех полей!");
         }
-        mainController.setEditing(false);
-        stage.close();
-
     }
 }

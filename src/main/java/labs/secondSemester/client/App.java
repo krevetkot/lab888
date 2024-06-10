@@ -38,7 +38,7 @@ public class App extends Application {
 
 
     public void loginStage(){
-        var authLoader = new FXMLLoader(getClass().getResource("login-view.fxml"));
+        var authLoader = new FXMLLoader(getClass().getResource("fxml/login-view.fxml"));
         authRoot = loadFxml(authLoader);
         Scene scene = new Scene(authRoot);
         stage.setScene(scene);
@@ -46,16 +46,6 @@ public class App extends Application {
         loginSignUpController.setClient(client);
         loginSignUpController.setStage(stage);
         stage.setTitle("Lab8");
-        stage.show();
-    }
-
-    public void mainStage(){
-        var mainLoader = new FXMLLoader(getClass().getResource("main-view.fxml"));
-        authRoot = loadFxml(mainLoader);
-        Scene scene = new Scene(authRoot);
-        stage.setScene(scene);
-        mainController = mainLoader.getController();
-        mainController.setClient(client);
         stage.show();
     }
 
