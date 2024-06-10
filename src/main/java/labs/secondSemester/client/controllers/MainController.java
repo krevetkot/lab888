@@ -8,33 +8,26 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 import labs.secondSemester.client.Client;
 import labs.secondSemester.client.CommandFactory;
-import labs.secondSemester.commons.commands.Add;
 import labs.secondSemester.commons.commands.Command;
-import labs.secondSemester.commons.exceptions.FailedBuildingException;
 import labs.secondSemester.commons.exceptions.IllegalValueException;
 import labs.secondSemester.commons.managers.CollectionManager;
-import labs.secondSemester.commons.managers.Console;
-import labs.secondSemester.commons.objects.Color;
-import labs.secondSemester.commons.objects.Country;
 import labs.secondSemester.commons.objects.Dragon;
-import labs.secondSemester.commons.objects.DragonType;
-import labs.secondSemester.commons.objects.forms.DragonForm;
 import lombok.Setter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.URL;
-import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Setter
 public class MainController implements Initializable {
@@ -104,6 +97,8 @@ public class MainController implements Initializable {
     @FXML
     private Button removeByID;
     @FXML
+    private Button updateButton;
+    @FXML
     private Button removeFirstButton;
     @FXML
     private Button reorderButton;
@@ -161,21 +156,14 @@ public class MainController implements Initializable {
 
 
         new Thread(() -> {
-                try {
-                    Platform.runLater(this::fillTable);
-                    Platform.runLater(this::initializeUser);
-//                    Platform.runLater(this::visualize);
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    System.out.println(e.getMessage());
-                    logger.error(e);
-                }
+            Platform.runLater(this::fillTable);
+            Platform.runLater(this::initializeUser);
         }).start();
 
 
+        AtomicBoolean work = new AtomicBoolean(true);
         new Thread(() -> {
-            while (true){
+            while (work.get()){
                 if (!isEditing){
                     try {
                         Platform.runLater(this::updateTable);
@@ -191,6 +179,13 @@ public class MainController implements Initializable {
         }).start();
 
 
+        Thread closingThreads = new Thread(() ->
+        {
+            work.set(false);
+            System.out.println("Все потоки закрыты");
+        });
+        Runtime.getRuntime().addShutdownHook(closingThreads);
+
     }
 
     public void fillTable() {
@@ -201,9 +196,11 @@ public class MainController implements Initializable {
         } catch (IllegalStateException e) {
             logger.error(e);
         }
+        logger.info("Таблица заполнена.");
     }
 
     synchronized public void updateTable(){
+        logger.info("Таблица обновляется.");
         ArrayList<Dragon> tempCollection = client.getCollectionFromServer();
         if (!collectionOfDragons.equals(tempCollection)){
             collectionOfDragons = tempCollection;
@@ -216,8 +213,9 @@ public class MainController implements Initializable {
 
     @FXML
     private void add(ActionEvent e){
+        logger.info("Выполнение команды Add.");
         try {
-            switchToEditing(e);
+            switchToEditing(e, null);
             Command command = commandFactory.buildCommand("add");
             command.setClientID(client.getClientID());
             command.setObjectArgument(currentDragon);
@@ -225,8 +223,48 @@ public class MainController implements Initializable {
             client.send(command);
             Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
             alert.showAlert("Result", null, client.handleResponse().getResponse().toString());
-
+            updateTable();
         } catch (Exception ex) {
+            logger.error(ex);
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            alert.showAlert("Error", null, ex.getMessage());
+        }
+    }
+
+    @FXML
+    synchronized private void update(ActionEvent e){
+        logger.info("Выполнение команды Add.");
+        try {
+
+            int dragonID;
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setContentText("Пожалуйста, введите ID дракона:");
+
+            Optional<String> result = dialog.showAndWait();
+            if (result.isPresent()){
+                dragonID = Integer.parseInt(result.get());
+            } else {
+                return;
+            }
+
+            CollectionManager.setCollectionOfDragons(collectionOfDragons);
+            Dragon dragon = CollectionManager.getById(dragonID);
+            switchToEditing(e, dragon);
+            Command command = commandFactory.buildCommand("add");
+            command.setClientID(client.getClientID());
+            command.setObjectArgument(currentDragon);
+
+            client.send(command);
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+            alert.showAlert("Result", null, client.handleResponse().getResponse().toString());
+            updateTable();
+        } catch (NumberFormatException ex) {
+            logger.error(ex);
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            alert.showAlert("Error", null, "ID должен быть целым числом.");
+        }
+        catch (Exception ex) {
+            logger.error(ex);
             Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
             alert.showAlert("Error", null, ex.getMessage());
         }
@@ -234,8 +272,9 @@ public class MainController implements Initializable {
 
     @FXML
     private void clear(ActionEvent e){
+        logger.info("Выполнение команды Clear.");
         try {
-            switchToEditing(e);
+            switchToEditing(e, null);
             Command command = commandFactory.buildCommand("clear");
             command.setClientID(client.getClientID());
             command.setObjectArgument(currentDragon);
@@ -245,6 +284,28 @@ public class MainController implements Initializable {
             alert.showAlert("Result", null, client.handleResponse().getResponse().toString());
 
         } catch (Exception ex) {
+            logger.error(ex);
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            alert.showAlert("Error", null, ex.getMessage());
+        }
+    }
+
+    @FXML
+    private void reorder(ActionEvent e){
+        logger.info("Выполнение команды Reorder.");
+        try {
+            switchToEditing(e, null);
+            Command command = commandFactory.buildCommand("reorder");
+            command.setClientID(client.getClientID());
+            command.setObjectArgument(currentDragon);
+
+            client.send(command);
+            Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+            alert.showAlert("Result", null, client.handleResponse().getResponse().toString());
+            updateTable();
+
+        } catch (Exception ex) {
+            logger.error(ex);
             Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
             alert.showAlert("Error", null, ex.getMessage());
         }
@@ -252,6 +313,7 @@ public class MainController implements Initializable {
 
     @FXML
     private void info(ActionEvent event){
+        logger.info("Выполнение команды Info.");
         try {
             Command command = commandFactory.buildCommand("info");
             command.setClientID(client.getClientID());
@@ -260,6 +322,7 @@ public class MainController implements Initializable {
             Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
             alert.showAlert("Result", null, client.handleResponse().getResponse().toString());
         } catch (IllegalValueException ex) {
+            logger.error(ex);
             Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
             alert.showAlert("Error", null, ex.getMessage());
         }
@@ -267,6 +330,7 @@ public class MainController implements Initializable {
 
     @FXML
     private void help(ActionEvent event){
+        logger.info("Выполнение команды Help.");
         try {
             Command command = commandFactory.buildCommand("help");
             command.setClientID(client.getClientID());
@@ -275,6 +339,7 @@ public class MainController implements Initializable {
             Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
             alert.showAlert("Result", null, client.handleResponse().getResponse().toString());
         } catch (IllegalValueException ex) {
+            logger.error(ex);
             Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
             alert.showAlert("Error", null, ex.getMessage());
         }
@@ -283,6 +348,7 @@ public class MainController implements Initializable {
 
     @FXML
     private void printFieldDescendingAge(ActionEvent event){
+        logger.info("Выполнение команды printFieldDescendingAge.");
         try {
             Command command = commandFactory.buildCommand("print_field_descending_age");
             command.setClientID(client.getClientID());
@@ -291,6 +357,7 @@ public class MainController implements Initializable {
             Alert alert = new Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
             alert.showAlert("Result", null, client.handleResponse().getResponse().toString());
         } catch (IllegalValueException ex) {
+            logger.error(ex);
             Alert alert = new Alert(javafx.scene.control.Alert.AlertType.ERROR);
             alert.showAlert("Error", null, ex.getMessage());
         }
@@ -299,23 +366,23 @@ public class MainController implements Initializable {
 
 
 
-    private void switchToEditing(ActionEvent event) throws IOException {
+    private void switchToEditing(ActionEvent event, Dragon dragon) throws IOException {
+        logger.info("Открытие окна редактирования.");
         isEditing = true;
         FXMLLoader loader = new FXMLLoader(getClass().getResource("edit-view.fxml"));
         root = loader.load();
 
         editController = loader.getController();
         editController.setClient(client);
-
+        editController.setDragon(dragon);
         editController.setMainController(this);
 
-//        stage = (Stage)((Node)event.getSource()).getScene().getWindow();
         Stage stage1 = new Stage();
         editController.setStage(stage1);
         scene = new Scene(root);
         stage1.setScene(scene);
         stage1.showAndWait();
-        isEditing = false;
+        logger.info("Закрытие окна редактирования.");
     }
 
 }

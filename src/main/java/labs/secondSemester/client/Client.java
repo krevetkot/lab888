@@ -277,7 +277,7 @@ public class Client {
             SocketAddress address = null;
             int time = 1;
             int tries = 1;
-            int period = 50000;
+            int period = 100000;
             while (!serverAddress.equals(address)) {
                 if (time % period == 0) {
                     connectServer(tries);

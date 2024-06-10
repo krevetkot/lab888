@@ -21,7 +21,7 @@
             <TextField fx:id="weight" promptText="вес" />
             <CheckBox fx:id="speaking" mnemonicParsing="false" prefHeight="18.0" prefWidth="357.0" text="умение говорить" />
             <ComboBox fx:id="dragonType" prefHeight="26.0" prefWidth="357.0" promptText="тип дракона" />
-            <CheckBox fx:id="excistingKiller" mnemonicParsing="false" prefHeight="18.0" prefWidth="357.0" text="у дракона есть убийца" />
+            <CheckBox fx:id="existingKiller" mnemonicParsing="false" prefHeight="18.0" prefWidth="357.0" text="у дракона есть убийца" />
             <Label prefHeight="27.0" prefWidth="421.0" text="Введите данные об убийце дракона, если он есть:" textAlignment="RIGHT" />
             <TextField fx:id="killerName" promptText="имя" />
             <TextField fx:id="passportID" promptText="паспорт" />
