@@ -11,17 +11,27 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import labs.secondSemester.client.Client;
 import labs.secondSemester.client.CommandFactory;
 import labs.secondSemester.commons.commands.Command;
 import labs.secondSemester.commons.exceptions.IllegalValueException;
 import labs.secondSemester.commons.managers.CollectionManager;
+import labs.secondSemester.commons.network.ClientIdentification;
+import labs.secondSemester.commons.network.Response;
 import labs.secondSemester.commons.objects.Dragon;
 import lombok.Setter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.w3c.dom.events.MouseEvent;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -75,6 +85,8 @@ public class MainController implements Initializable {
 
     @FXML
     private Tab visualTab;
+    @FXML
+    private AnchorPane visualPane;
     @FXML
     private Tab dragonTab;
     @FXML
@@ -346,6 +358,7 @@ public class MainController implements Initializable {
 
     @FXML
     private void help(ActionEvent event){
+        draw(CollectionManager.getCollection().getFirst());
         logger.info("Выполнение команды Help.");
         try {
             Command command = commandFactory.buildCommand("help");
@@ -393,20 +406,16 @@ public class MainController implements Initializable {
         logger.info("Выполнение команды ExecuteFile.");
         try {
 
-            String file;
-            TextInputDialog dialog = new TextInputDialog();
-            dialog.setContentText("Пожалуйста, введите полный путь до файла:");
+            String file = myDialog.askString("Пожалуйста, введите полный путь до файла: ");
+            if (file!=null){
+                client.getFileManager().executeFile(file, client.getClientID());
 
-            Optional<String> result = dialog.showAndWait();
-            if (result.isPresent()){
-                file = result.get();
-            } else {
-                return;
+                StringBuilder result = new StringBuilder();
+                for (Response resp: client.getFileManager().getResponses()){
+                    result.append(resp.getResponse().toString()).append("\n");
+                }
+                myAlert.showResult(result.toString());
             }
-
-            client.getFileManager().executeFile(file, client.getClientID());
-
-            myAlert.showResult(client.handleResponse().getResponse().toString());
         } catch (Exception ex) {
             logger.error(ex);
             myAlert.showError(ex.getMessage());
@@ -437,4 +446,20 @@ public class MainController implements Initializable {
         logger.info("Закрытие окна редактирования.");
     }
 
+
+    public void draw(Dragon dragon){
+        Circle circle = new Circle(dragon.getCoordinates().getX(), dragon.getCoordinates().getY(), 100, generateColor(client.getClientID()));
+
+        visualPane.getChildren().add(circle);
+    }
+
+    public Color generateColor(ClientIdentification client){
+        int x = client.getLogin().hashCode()*1000000;
+        String res = String.valueOf(Math.abs(x));
+        String red = "0."+res.charAt(0)+res.charAt(1)+res.charAt(2)+res.charAt(3);
+        String green = "0."+res.charAt(4)+res.charAt(5)+res.charAt(6)+res.charAt(7);
+        String blue = "0."+res.charAt(8)+res.charAt(9)+res.charAt(10)+res.charAt(11);
+
+        return new Color(Double.parseDouble(red), Double.parseDouble(green), Double.parseDouble(blue), 1);
+    }
 }

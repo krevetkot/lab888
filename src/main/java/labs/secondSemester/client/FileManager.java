@@ -13,6 +13,7 @@ import labs.secondSemester.commons.network.ClientIdentification;
 import labs.secondSemester.commons.network.Response;
 import labs.secondSemester.commons.objects.Dragon;
 import labs.secondSemester.commons.objects.forms.DragonForm;
+import lombok.Getter;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -23,20 +24,18 @@ import java.util.Scanner;
 
 public class FileManager {
     private final Client client;
-//    private MyAlert myAlert;
-    private ArrayList<Response> responses;
+    @Getter
+    private final ArrayList<Response> responses;
 
     public FileManager(Client client){
         this.client = client;
-//        myAlert = new MyAlert(Alert.AlertType.NONE);
         responses = new ArrayList<>();
     }
 
     public void executeFile(String argument, ClientIdentification clientID) {
         try {
             if (!(new File(argument).isFile())) {
-//                myAlert.showError("Невозможно прочесть файл.");
-                return;
+                throw new IOException("Невозможно прочесть файл.");
             }
             ScriptManager.addFile(argument);
             BufferedReader br = ScriptManager.getBufferedReaders().getLast();
@@ -48,7 +47,7 @@ public class FileManager {
                 String[] command = line.split(" ");
                 if (command[0].equals("execute_file")) {
                     if (ScriptManager.isRecursive(command[1])) {
-//                        myAlert.showError("Найдена рекурсия! Повторно вызывается файл " + command[1]);
+                        throw new RuntimeException("Найдена рекурсия! Повторно вызывается файл " + command[1]);
                     }
                 }
 
@@ -93,7 +92,7 @@ public class FileManager {
             responses.add(new Response("------ Выполнение файла " + argument + " завершено ------"));
 
         } catch (IOException e) {
-//            myAlert.showError(e.getMessage());
+            responses.add(new Response(e.getMessage()));
         }
 
 
