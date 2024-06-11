@@ -6,6 +6,7 @@
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
@@ -15,28 +16,28 @@
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="531.0" prefWidth="872.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="labs.secondSemester.client.controllers.MainController">
    <children>
-      <HBox layoutX="22.0" layoutY="472.0" prefHeight="30.0" prefWidth="849.0">
+      <HBox layoutX="22.0" layoutY="472.0" prefHeight="30.0" prefWidth="849.0" AnchorPane.bottomAnchor="28.344538797826083">
          <children>
             <Button fx:id="addButton" mnemonicParsing="false" onAction="#add" text="Add" />
             <Button fx:id="clearButton" mnemonicParsing="false" onAction="#clear" text="Clear" />
             <Button fx:id="infoButton" mnemonicParsing="false" onAction="#info" text="Info" />
             <Button fx:id="helpButton" mnemonicParsing="false" onAction="#help" text="Help" />
-            <Button fx:id="filterLessThanKillerButton" mnemonicParsing="false" text="FilterLessThanKiller" />
+            <Button fx:id="filterLessThanKillerButton" mnemonicParsing="false" onAction="#filterLessThanKiller" text="FilterLessThanKiller" />
             <Button fx:id="maxByKillerButton" mnemonicParsing="false" onAction="#maxByKiller" text="MaxByKiller" />
             <Button fx:id="printFieldDescendingAgeButton" mnemonicParsing="false" onAction="#printFieldDescendingAge" text="PrintFieldDescendingAge" />
             <Button fx:id="removeByIDButton" mnemonicParsing="false" onAction="#removeByID" text="RemoveByID" />
-            <Button fx:id="removeFirstButton" mnemonicParsing="false" text="RemoveFirst" />
-            <Button fx:id="reorderButton" mnemonicParsing="false" text="Reorder" />
+            <Button fx:id="removeFirstButton" mnemonicParsing="false" onAction="#removeFirst" text="RemoveFirst" />
+            <Button fx:id="reorderButton" mnemonicParsing="false" onAction="#reorder" text="Reorder" />
             <Button fx:id="executeFileButton" mnemonicParsing="false" onAction="#executeFile" text="ExecuteFile" />
          </children>
       </HBox>
-      <TabPane layoutX="14.0" layoutY="48.0" prefHeight="424.0" prefWidth="849.0" tabClosingPolicy="UNAVAILABLE">
+      <TabPane layoutX="14.0" layoutY="48.0" prefHeight="424.0" prefWidth="849.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="58.26051935594961" AnchorPane.leftAnchor="13.647086339130283" AnchorPane.rightAnchor="8.521035634496457" AnchorPane.topAnchor="48.0">
         <tabs>
             <Tab fx:id="dragonTab" text="Dragon">
                <content>
                   <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="297.0" prefWidth="849.0">
                      <children>
-                        <TableView fx:id="dragonsTable" prefHeight="393.0" prefWidth="849.0">
+                        <TableView fx:id="dragonsTable" prefHeight="393.0" prefWidth="849.0" AnchorPane.bottomAnchor="2.4201679896453356" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <columns>
                               <TableColumn fx:id="idColumn" prefWidth="53.24368667602539" text="id" />
                                <TableColumn fx:id="ownerColumn" prefWidth="72.60503387451172" text="owner" />
@@ -62,25 +63,34 @@
             </Tab>
           <Tab fx:id="visualTab" onSelectionChanged="#goToVisual" text="Visual">
             <content>
-              <AnchorPane fx:id="visualPane" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <ScrollPane prefHeight="390.0" prefWidth="849.0" AnchorPane.bottomAnchor="6.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <content>
+                              <AnchorPane fx:id="visualPane" prefHeight="778.0" prefWidth="1189.0" />
+                           </content>
+                        </ScrollPane>
+                     </children></AnchorPane>
             </content>
           </Tab>
         </tabs>
       </TabPane>
-      <Label fx:id="usernameLabel" layoutX="22.0" layoutY="503.0" prefHeight="18.0" prefWidth="162.0" text="User: " />
-      <HBox layoutX="412.0" layoutY="501.0" prefHeight="31.0" prefWidth="69.0">
+      <Label fx:id="usernameLabel" layoutX="22.0" layoutY="503.0" prefHeight="18.0" prefWidth="162.0" text="User: " AnchorPane.bottomAnchor="9.44537874605263" />
+      <HBox layoutX="412.0" layoutY="501.0" prefHeight="31.0" prefWidth="69.0" AnchorPane.bottomAnchor="-1.4621838653890187">
          <children>
             <Button fx:id="updateButton" mnemonicParsing="false" onAction="#update" prefHeight="26.0" prefWidth="65.0" text="Update" />
          </children>
       </HBox>
-      <MenuBar layoutY="7.0" prefHeight="27.0" prefWidth="872.0">
+      <MenuBar layoutY="7.0" prefHeight="27.0" prefWidth="872.0" AnchorPane.topAnchor="7.0">
         <menus>
           <Menu mnemonicParsing="false">
                <graphic>
                   <MenuButton fx:id="languageSwitcher" mnemonicParsing="false" text="Language">
                     <items>
-                      <MenuItem mnemonicParsing="false" text="ru" />
-                      <MenuItem mnemonicParsing="false" text="Action 2" />
+                      <MenuItem fx:id="ru" mnemonicParsing="false" onAction="#switchRussian" text="ru" />
+                      <MenuItem fx:id="mkd" mnemonicParsing="false" onAction="#switchMakedonian" text="mkd" />
+                        <MenuItem fx:id="lit" mnemonicParsing="false" onAction="#switchLitovian" text="lit" />
+                        <MenuItem fx:id="spaGT" mnemonicParsing="false" onAction="#switchGuatemala" text="spa (gt)" />
                     </items>
                   </MenuButton>
                </graphic>

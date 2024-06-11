@@ -8,12 +8,11 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 
-
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="618.0" prefWidth="531.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="labs.secondSemester.client.controllers.EditController">
    <children>
       <VBox layoutX="94.0" layoutY="42.0" prefHeight="418.0" prefWidth="356.0">
          <children>
-            <Label prefHeight="27.0" prefWidth="421.0" text="Введите данные о драконе:" textAlignment="RIGHT" />
+            <Label fx:id="headerLabel" prefHeight="27.0" prefWidth="421.0" text="Введите данные о драконе:" textAlignment="RIGHT" />
             <TextField fx:id="dragonName" promptText="имя" />
             <TextField fx:id="coordX" promptText="кордината Х" />
             <TextField fx:id="coordY" promptText="координата Y" />

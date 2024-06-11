@@ -9,7 +9,7 @@ public class MyDialog extends TextInputDialog {
 
     public Integer askInteger(String text){
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setContentText("Пожалуйста, введите ID дракона:");
+        dialog.setContentText(text);
 
         Optional<String> result = dialog.showAndWait();
         if (result.isPresent()){
@@ -20,7 +20,7 @@ public class MyDialog extends TextInputDialog {
 
     public String askString(String text){
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setContentText("Пожалуйста, введите ID дракона:");
+        dialog.setContentText(text);
 
         Optional<String> result = dialog.showAndWait();
         if (result.isPresent()){

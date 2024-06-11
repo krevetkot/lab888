@@ -8,6 +8,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import labs.secondSemester.client.Client;
@@ -34,7 +35,10 @@ public class EditController implements Initializable {
     private Parent root;
     private Scene scene;
     private MainController mainController;
+    private ResourceBundle resourceBundle;
 
+    @FXML
+    private Label headerLabel;
     @FXML
     private TextField dragonName;
     @FXML
@@ -83,13 +87,14 @@ public class EditController implements Initializable {
             Platform.runLater(this::fillFields);
         }).start();
 
+        this.resourceBundle = resourceBundle;
         myAlert = new MyAlert(null);
     }
 
 
     private void fillFields(){
         if (dragon!=null) {
-            dragonName.setText(dragon.getName());
+            dragonName.setPromptText(dragon.getName());
             coordX.setText(String.valueOf(dragon.getCoordinates().getX()));
             coordY.setText(String.valueOf(dragon.getCoordinates().getY()));
             age.setText(String.valueOf(dragon.getAge()));
@@ -146,4 +151,18 @@ public class EditController implements Initializable {
             myAlert.showError("Проверьте правильность заполнения всех полей!");
         }
     }
+
+//    public void changeLanguage() {
+//        headerLabel.setText(resourceBundle.getString("headerLabel"));
+//
+//        dragonName.setPromptText(resourceBundle.getString("DragonNameLabel"));
+//        coordX.setPromptText(resourceBundle.getString("XLabel"));
+//        coordX.setPromptText(resourceBundle.getString("YLabel"));
+//        age.setPromptText(resourceBundle.getString("AgeLabel"));
+//        weight.setPromptText(resourceBundle.getString("WeightLabel"));
+//        killerName.setPromptText(resourceBundle.getString("KillerNameLabel"));
+//        passportID.setPromptText(resourceBundle.getString("PassportIDLabel"));
+//        killedDragons.setPromptText(resourceBundle.getString("KilledDragonsLabel"));
+//
+//    }
 }

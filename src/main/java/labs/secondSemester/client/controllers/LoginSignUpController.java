@@ -1,6 +1,7 @@
 package labs.secondSemester.client.controllers;
 
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -18,9 +19,11 @@ import javafx.scene.control.TextField;
 import lombok.Setter;
 
 import java.io.IOException;
+import java.net.URL;
+import java.util.ResourceBundle;
 
 @Setter
-public class LoginSignUpController {
+public class LoginSignUpController implements Initializable {
     private Client client;
     @FXML
     private TextField loginField;
@@ -45,7 +48,7 @@ public class LoginSignUpController {
     }
 
     @FXML
-    private void initialize(){
+    public void initialize(URL url, ResourceBundle resourceBundle){
         loginField.textProperty().addListener((observableValue, oldValue, newValue) -> {
             if (!newValue.matches(".{0,40}")) {
                 loginField.setText(oldValue);
@@ -72,7 +75,6 @@ public class LoginSignUpController {
         client.send(loginCommand);
         if (client.handleLoginResponse()){
             //тут еще хорошо бы выводить всякие дайлоги
-            System.out.println("УРА НЕУЖЕЛИ МЫ СМОГЛИ ВОЙТИ В АККАУНТ");
             client.setClientID(new ClientIdentification(login, hashedPassword));
             client.getClientID().setAuthorized(true);
 
@@ -100,7 +102,6 @@ public class LoginSignUpController {
         client.send(signUpCommand);
         if (client.handleLoginResponse()){
             //тут еще хорошо бы выводить всякие дайлоги
-            System.out.println("УРА НЕУЖЕЛИ МЫ СМОГЛИ ВОЙТИ В АККАУНТ");
             client.setClientID(new ClientIdentification(login, hashedPassword));
             client.getClientID().setAuthorized(true);
 
@@ -129,5 +130,4 @@ public class LoginSignUpController {
         stage.setScene(scene);
         stage.show();
     }
-
 }

@@ -1,7 +1,6 @@
 package labs.secondSemester.client.controllers;
 
 import javafx.animation.FadeTransition;
-import javafx.animation.FillTransition;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -13,8 +12,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -31,20 +28,21 @@ import labs.secondSemester.commons.objects.Dragon;
 import lombok.Setter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.w3c.dom.events.MouseEvent;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.util.Locale;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Setter
 public class MainController implements Initializable {
     private static final Logger logger = LogManager.getLogger(MainController.class);
+
+    private ResourceBundle resourceBundle;
+    private Locale locale;
 
     private ArrayList<Dragon> collectionOfDragons;
     private Client client;
@@ -120,6 +118,17 @@ public class MainController implements Initializable {
     @FXML
     private Button executeFileButton;
 
+    @FXML
+    private MenuItem ru;
+    @FXML
+    private MenuItem mkd;
+    @FXML
+    private MenuItem lit;
+    @FXML
+    private MenuItem spaGT;
+    @FXML
+    private MenuButton languageSwitcher;
+
     private Stage stage;
     private Scene scene;
     private Parent root;
@@ -162,9 +171,9 @@ public class MainController implements Initializable {
             System.out.println("Все потоки закрыты");
         });
         Runtime.getRuntime().addShutdownHook(closingThreads);
-
-        myDialog = new MyDialog();
+        
         myAlert = new MyAlert(Alert.AlertType.NONE);
+        myDialog = new MyDialog();
 
     }
 
@@ -232,7 +241,7 @@ public class MainController implements Initializable {
         }
     }
     public void initializeUser(){
-        usernameLabel.setText("Username: " + client.getClientID().getLogin());
+        usernameLabel.setText("Username: " + " " + client.getClientID().getLogin());
         commandFactory = new CommandFactory(client.getClientID());
     }
 
@@ -332,13 +341,11 @@ public class MainController implements Initializable {
     private void reorder(ActionEvent e){
         logger.info("Выполнение команды Reorder.");
         try {
-            switchToEditing(e, null);
             Command command = commandFactory.buildCommand("reorder");
-            command.setObjectArgument(currentDragon);
 
             client.send(command);
             myAlert.showResult(client.handleResponse().getResponse().toString());
-            updateTable();
+            fillTable();
 
         } catch (Exception ex) {
             logger.error(ex);
@@ -353,7 +360,8 @@ public class MainController implements Initializable {
             Command command = commandFactory.buildCommand("info");
 
             client.send(command);
-            myAlert.showResult(client.handleResponse().getResponse().toString());
+
+            myAlert.showBigResult(client.handleResponse());
         } catch (IllegalValueException ex) {
             logger.error(ex);
             myAlert.showError(ex.getMessage());
@@ -367,7 +375,7 @@ public class MainController implements Initializable {
             Command command = commandFactory.buildCommand("help");
 
             client.send(command);
-            myAlert.showResult(client.handleResponse().getResponse().toString());
+            myAlert.showBigResult(client.handleResponse());
         } catch (IllegalValueException ex) {
             logger.error(ex);
             myAlert.showError(ex.getMessage());
@@ -382,7 +390,7 @@ public class MainController implements Initializable {
             Command command = commandFactory.buildCommand("print_field_descending_age");
 
             client.send(command);
-            myAlert.showResult(client.handleResponse().getResponse().toString());
+            myAlert.showBigResult(client.handleResponse());
         } catch (IllegalValueException ex) {
             logger.error(ex);
             myAlert.showError(ex.getMessage());
@@ -397,11 +405,33 @@ public class MainController implements Initializable {
             Command command = commandFactory.buildCommand("max_by_killer");
 
             client.send(command);
-            myAlert.showResult(client.handleResponse().getResponse().toString());
+            myAlert.showBigResult(client.handleResponse());
         } catch (IllegalValueException ex) {
             logger.error(ex);
             myAlert.showError(ex.getMessage());
         }
+    }
+
+
+    @FXML
+    private void removeFirst(){
+        logger.info("Выполнение команды RemoveFirst.");
+        try {
+            Command command = commandFactory.buildCommand("remove_first");
+
+            client.send(command);
+            myAlert.showResult(client.handleResponse().getResponse().toString());
+            updateTable();
+        }
+        catch (Exception ex) {
+            logger.error(ex);
+            myAlert.showError(ex.getMessage());
+        }
+    }
+
+    @FXML
+    private void filterLessThanKiller(){
+        myAlert.showResult("Я не успела сделать эту команду *звуки слез*");
     }
 
     @FXML
@@ -409,7 +439,7 @@ public class MainController implements Initializable {
         logger.info("Выполнение команды ExecuteFile.");
         try {
 
-            String file = myDialog.askString("Пожалуйста, введите полный путь до файла: ");
+            String file = myDialog.askString("Пожалуйста, введите полный путь до файла:");
             if (file!=null){
                 client.getFileManager().executeFile(file, client.getClientID());
 
@@ -463,10 +493,8 @@ public class MainController implements Initializable {
 
     private void draw(Dragon dragon){
         int koef = 100;
-        Color color = generateColor(client.getClientID());
+        Color color = generateColor(dragon.getOwner());
         Circle circle = new Circle(dragon.getCoordinates().getX()*koef, dragon.getCoordinates().getY()*koef, dragon.getWeight(), color);
-
-
 
         circle.setOnMouseClicked(event -> {
             try {
@@ -500,9 +528,9 @@ public class MainController implements Initializable {
         fadeIn.play();
     }
 
-    public Color generateColor(ClientIdentification client){
+    public Color generateColor(String client){
         try {
-            int x = client.getLogin().hashCode()*1000000;
+            int x = client.hashCode()*1000000;
             String res = String.valueOf(Math.abs(x));
             String red = "0."+res.charAt(0)+res.charAt(1);
             String green = "0."+res.charAt(2)+res.charAt(3);
@@ -510,8 +538,76 @@ public class MainController implements Initializable {
 
             return new Color(Double.parseDouble(red), Double.parseDouble(green), Double.parseDouble(blue), 1);
         } catch (Exception ex){
-            myAlert.showError("Трудности с генерацией цвета: " + ex.getMessage());
+            myAlert.showError("Трудности с генерацией цвета:" + ex.getMessage());
             return new Color(0, 0, 0, 0);
         }
+    }
+
+
+//    public void changeLanguage() {
+//        usernameLabel.setText(resourceBundle.getString("UsernameLabel") + " " + client.getClientID().getLogin());
+//
+//        helpButton.setText(resourceBundle.getString("Help"));
+//        infoButton.setText(resourceBundle.getString("Info"));
+//        addButton.setText(resourceBundle.getString("Add"));
+//        updateButton.setText(resourceBundle.getString("Update"));
+//        filterLessThanKillerButton.setText(resourceBundle.getString("FilterLessThanKillerButton"));
+//        clearButton.setText(resourceBundle.getString("Clear"));
+//        maxByKillerButton.setText(resourceBundle.getString("MaxByKillerButton"));
+//        printFieldDescendingAgeButton.setText(resourceBundle.getString("PrintFieldDescendingAgeButton"));
+//        removeByIDButton.setText(resourceBundle.getString("RemoveByIDButton"));
+//        removeFirstButton.setText(resourceBundle.getString("RemoveFirstButton"));
+//        reorderButton.setText(resourceBundle.getString("ReorderButton"));
+//        executeFileButton.setText(resourceBundle.getString("ExecuteFileButton"));
+//
+//        dragonTab.setText(resourceBundle.getString("DragonTab"));
+//        visualTab.setText(resourceBundle.getString("VisualTab"));
+//
+//        ownerColumn.setText(resourceBundle.getString("Owner"));
+//        nameColumn.setText(resourceBundle.getString("Name"));
+//        xColumn.setText(resourceBundle.getString("X"));
+//        yColumn.setText(resourceBundle.getString("Y"));
+//        dateColumn.setText(resourceBundle.getString("CreationDate"));
+//        ageColumn.setText(resourceBundle.getString("Age"));
+//        weightColumn.setText(resourceBundle.getString("Weight"));
+//        speakingColumn.setText(resourceBundle.getString("Speaking"));
+//        typeColumn.setText(resourceBundle.getString("Type"));
+//
+//        kNameColumn.setText(resourceBundle.getString("kNameColumn"));
+//        kPassportColumn.setText(resourceBundle.getString("kPassportColumn"));
+//        kEyeColorColumn.setText(resourceBundle.getString("kEyeColorColumn"));
+//        kHairColorColumn.setText(resourceBundle.getString("kHairColorColumn"));
+//        kNationalityColumn.setText(resourceBundle.getString("kNationalityColumn"));
+//        kKilledDragonsColumn.setText(resourceBundle.getString("kKilledDragonsColumn"));
+//
+//        languageSwitcher.setText(resourceBundle.getString("Language"));
+//
+//        editController.changeLanguage();
+//    }
+
+
+
+    @FXML
+    private void switchRussian(){
+        Locale.setDefault(new Locale("ru", "RU"));
+        myAlert.showResult("Вы поменяли язык на русский");
+    }
+
+    @FXML
+    private void switchMakedonian(){
+        Locale.setDefault(new Locale("mkd", "MKD"));
+        myAlert.showResult("Вы поменяли язык на македонский");
+    }
+
+    @FXML
+    private void switchLitovian(){
+        Locale.setDefault(new Locale("mkd", "MKD"));
+        myAlert.showResult("Вы поменяли язык на македонский");
+    }
+
+    @FXML
+    private void switchGuatemala(){
+        Locale.setDefault(new Locale("mkd", "MKD"));
+        myAlert.showResult("Вы поменяли язык на македонский");
     }
 }

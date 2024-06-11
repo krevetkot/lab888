@@ -11,6 +11,8 @@ import labs.secondSemester.client.controllers.MainController;
 //import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class App extends Application {
     private Parent authRoot;
@@ -32,6 +34,11 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
+//        ResourceBundle.getBundle("C:\\Users\\User\\java_workspace\\lab888\\target\\classes\\labs\\secondSemester\\client\\locales\\locale", new Locale("ru", "RU"));
+//        ResourceBundle.getBundle("locale", new Locale("ru", "RU"));
+//        ResourceBundle bundle = ResourceBundle.getBundle("locale");
+//        ResourceBundle.
+//        Locale.setDefault(new Locale("ru", "RU"));
         this.stage = stage;
         loginStage();
     }
